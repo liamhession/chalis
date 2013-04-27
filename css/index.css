@@ -1,0 +1,25 @@
+body{
+        padding-top: 60px;
+    }
+		
+.entry-box
+{
+	margin-top: 10%;
+	
+}
+#main-title
+{
+	margin-top: 10px;
+	font-size: 50px;
+}
+
+.top-entries
+{
+	margin-top: 5%
+	border: solid 1px;
+}
+
+.detail-select
+{
+	border: solid black;
+}
