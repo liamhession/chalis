@@ -37,8 +37,8 @@ class GeolocationProgress(ndb.Model):
 class Combatant(ndb.Model):
     combatant_id = ndb.IntegerProperty()
     name = ndb.StringProperty()
-    challenges_won = ndb.IntegerProperty()
-    is_in_a_challenge = ndb.BooleanProperty()
+    challenges_won = ndb.IntegerProperty(default=0)
+#    is_in_a_challenge = ndb.BooleanProperty(default=False)
 
 class CombatantUser(ndb.Model):
     combatant_id = ndb.IntegerProperty()
@@ -46,8 +46,7 @@ class CombatantUser(ndb.Model):
 
 class User(ndb.Model):
     user_id = ndb.IntegerProperty()
-    name = ndb.StringProperty()
-    email = ndb.StringProperty()
+    google_username = ndb.StringProperty()
     phone_number = ndb.IntegerProperty()
-    challenges_won = ndb.IntegerProperty()
+    challenges_won = ndb.IntegerProperty(default=0)
 

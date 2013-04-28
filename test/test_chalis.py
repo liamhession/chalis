@@ -93,8 +93,38 @@ class FetchChallengeInfoTest(unittest.TestCase):
         self.assertEqual(con_id, r6)
         self.assertEqual(stakes_ids, r7)
 
+    def test_fetch_contract_info_only_short_name(self):
+        full_name = "My Fave Challenge"
+        short_name = "MyFaveChallenge"
+        newCon = models.Contract(contract_id = 1,
+                                 challenge_name = full_name,
+                                 short_name = short_name)
+        newCon.put()
+
+        r1, r2, r3, r4, r5, r6, r7 = chalis.fetch_contract_info(short_name)
+
+        self.assertEqual(1, r6)
+        self.assertEqual(full_name, r1)
+        self.assertEqual(None, r2)
+        self.assertEqual(None, r3)
+        self.assertEqual(None, r4)
+        self.assertEqual(None, r5)
+        self.assertEqual([], r7)
+
     def test_fetch_stakes_info(self):
-        
+        new_stakes1 = models.Stakes(stakes_id = 1,
+                                  position = 'first',
+                                  stakes_desc = "Gets free lunch")
+        new_stakes2 = models.Stakes(stakes_id = 2,
+                                   position = 'last',
+                                   stakes_desc = "Buys lunch")
+        new_stakes1.put()
+        new_stakes2.put()
+
+        stakes_info = chalis.fetch_stakes_info([1,2])
+
+        self.assertEqual("Gets free lunch", stakes_info[0]['first'])
+        self.assertEqual("Buys lunch", stakes_info[1]['last'])
         
 
 
