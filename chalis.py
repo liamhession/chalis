@@ -75,6 +75,10 @@ class EditChallenge(webapp2.RequestHandler):
 # Renders details page where a challenge's info is seen and can be edited 
 class ChallengePage(webapp2.RequestHandler):
     def get(self, short_name):
+        should_be_here = check_user_auth(short_name)
+        if not should_be_here:
+            self.redirect('/')  #TODO: just have them see w/o editing
+
         # Get the relevant model's info
         name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
         
@@ -83,6 +87,7 @@ class ChallengePage(webapp2.RequestHandler):
 
         context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
 
+        # Render the page in context and display it
         challenge_page = jinja_environment.get_template("details.html")
         self.response.out.write(challenge_page.render(context))
 
@@ -90,7 +95,40 @@ class ChallengePage(webapp2.RequestHandler):
 # Renders invite page where a user adds other people to the challenge
 class InvitePage(webapp2.RequestHandler):
     def get(self, short_name):
-        self.response.out.write(short_name)
+        should_be_here = check_user_auth(short_name)
+        if not should_be_here:
+            self.redirect('/')
+
+        # Build up context that only contains an array of combatant_name : [user1, user2] objects
+        context = {'joined' : {}}
+
+        # Show a list of already-joined combatants with their usernames
+        contract_id = Contract.query(Contract.short_name == short_name).get()
+        combatants_info = fetch_combatants_info(contract_id)
+
+        # Get all users associated with each distinct combatant 
+        for combatant in combatants_info:
+            users_info = fetch_users_info(combatant.combatant_id)
+            users_array = []
+
+            # Fill the array of users associated with combatant.name with their google emails
+            for user_info in users_info:
+                users_array.append(user_info.google_username+"@gmail.com") 
+
+            # Put the combatant-users object into context's array of these objects
+            context.joined[combatant.name] = users_array
+
+        # Render the page in context and display it
+        invite_page = jinja_environment.get_template("invite.html")
+        self.response.out.write(invite_page.render(context))
+
+
+# Handles new combatant/username entered on InvitePage
+class SendInvite(webapp2.RequestHandler):
+    def post(self, short_name):
+        email = self.request.get('username') + "@gmail.com"
+        #TODO: send email that will take them to a join page where they can set up combatant info
+
 
 ############### Unit-testable Functions Used By Handlers ##############
 def find_short_name(new_name): 
@@ -224,4 +262,29 @@ def link_contract_combatant(contract_id, combatant_id):
     new_cc.put()
 
 
-app = webapp2.WSGIApplication([('/', HomePage), ('/new', CreateChallenge), ('/(.*)/edit', EditChallenge), ('/(.*)/details', ChallengePage), ('/(.*)/invite', InvitePage)], debug=True)##, ('/(.*)/join', JoinPage), ('/(.*)/status', StatusPage), ('/(.*)/checkin', CheckinPage)], debug=True)
+def fetch_combatants_info(contract_id):
+    # Grab all the ContractCombatant objects with this contract_id
+    con_coms = ContractCombatant.query(ContractCombatant.contract_id == contract_id).fetch(20)
+
+    # Create Combatant models that are represented by con_coms
+    combatants = []
+    for con_com in con_coms:
+        com = Combatant.query(Combatant.combatant_id == con_com.combatant_id).get()
+        combatants.append(com)
+
+    return combatants
+
+
+def fetch_users_info(combatant_id):
+    # Grab all the CombatantUser objects with this combatant_id
+    com_users = CombatantUser.query(CombatantUser.combatant_id == combatant_id).fetch(20)
+
+    # Create User models that are represented by com_users
+    users = []
+    for com_user in com_users:
+        user = User.query(User.user_id == com_user.user_id).get()
+        users.append(user)
+
+    return users
+
+app = webapp2.WSGIApplication([('/', HomePage), ('/new', CreateChallenge), ('/(.*)/edit', EditChallenge), ('/(.*)/details', ChallengePage), ('/(.*)/invite', InvitePage), ('/(.*)/send-invite', SendInvite)], debug=True)##, ('/(.*)/join', JoinPage), ('/(.*)/status', StatusPage), ('/(.*)/checkin', CheckinPage)], debug=True)

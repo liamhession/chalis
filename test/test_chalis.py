@@ -127,9 +127,50 @@ class FetchChallengeInfoTest(unittest.TestCase):
         self.assertEqual("Buys lunch", stakes_info[1]['last'])
         
 
+class InviteTest(unittest.TestCase):
+    def setUp(self):
+        logging.info('In Invite setUp()')
+
+    def test_invite_context_creation(self):
+        # Will build up a context object in the same way InvitePage does
+        context = {'joined' : {}}
+        
+        # First need to add combatant-users for a new contract,
+        models.Contract(contract_id = 1).put()
+        models.User(user_id = 1, google_username = "liam").put()
+        models.Combatant(combatant_id = 1, name = "Liam").put()
+        models.ContractCombatant(contract_id = 1, combatant_id = 1).put()
+        models.CombatantUser(combatant_id = 1, user_id = 1).put()
+        models.User(user_id = 2, google_username = "jeff").put()
+        models.User(user_id = 3, google_username = "bob2").put()
+        models.Combatant(combatant_id = 2, name = "Best Team").put()
+        models.ContractCombatant(contract_id = 1, combatant_id = 2).put()
+        models.CombatantUser(combatant_id = 2, user_id = 2).put()
+        models.CombatantUser(combatant_id = 2, user_id = 3).put()
+
+        # Fill context.joined array
+        contract_id = 1
+        combatants_info = chalis.fetch_combatants_info(contract_id)
+
+        # Get all users associated with each distinct combatant 
+        for combatant in combatants_info:
+            users_info = chalis.fetch_users_info(combatant.combatant_id)
+            users_array = []
+
+            # Fill the array of users associated with combatant.name with their google emails
+            for user_info in users_info:
+                users_array.append(user_info.google_username+"@gmail.com") 
+
+            # Put the combatant-users object into context's array of these objects
+            context['joined'][combatant.name] = users_array
+
+        # Check that it worked as expected
+        self.assertEqual("liam@gmail.com", context['joined']["Liam"][0])
+        self.assertTrue("jeff@gmail.com", context['joined']["Best Team"])
+        self.assertTrue("bob2@gmail.com", context['joined']["Best Team"])
 
 def test_main():
-    test_support.run_unittest(HomePageTest, CreateChallengeTest)
+    test_support.run_unittest(HomePageTest, CreateChallengeTest, FetchChallengeInfoTest, InviteTest)
 
 if __name__ == '__main__':
     test_main()
