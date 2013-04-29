@@ -123,14 +123,49 @@ class InvitePage(webapp2.RequestHandler):
         self.response.out.write(invite_page.render(context))
 
 
-# Handles new combatant/username entered on InvitePage
+# Handles new user email entered on InvitePage.
 class SendInvite(webapp2.RequestHandler):
     def post(self, short_name):
         email = self.request.get('username') + "@gmail.com"
         #TODO: send email that will take them to a join page where they can set up combatant info
 
 
+# Page arrived at when accepting an invitation to join a challenge. User chooses combatant name/team
+# class JoinPage(webapp2.RequestHandler):
+
+
+# Render the form for checking in to the indicated challenge. Form different depending on objective
+class CheckinPage(webapp2.RequestHandler):
+    def get(self, short_name):
+        self.response.out.write("hi")        
+
+
 ############### Unit-testable Functions Used By Handlers ##############
+# Returns whether or not the current user can see info related to challenge "short_name"
+def check_user_auth(short_name):
+    user = users.get_current_user()
+    # Can't see it if they're not even logged in!
+    if not user: 
+        return False
+
+    # Find all the users associated with this challenge
+    contract_id = Contract.query(Contract.short_name == short_name).get().contract_id
+    combatants_info = fetch_combatants_info(contract_id)
+
+    users_array = []
+    # Get all users associated with each distinct combatant 
+    for combatant in combatants_info:
+        users_info = fetch_users_info(combatant.combatant_id)
+
+        # Fill the array of users associated with combatant.name with their google emails
+        for user_info in users_info:
+            users_array.append(str(user_info.google_username))
+
+    # If the current user's id is in users_array then they're good to go 
+    return str(user) in users_array
+
+
+
 def find_short_name(new_name): 
     # Create a shortened version of this name to appear in URLs
     # Get ride of spaces and the word "challenge" first

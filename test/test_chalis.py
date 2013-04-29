@@ -169,8 +169,24 @@ class InviteTest(unittest.TestCase):
         self.assertTrue("jeff@gmail.com", context['joined']["Best Team"])
         self.assertTrue("bob2@gmail.com", context['joined']["Best Team"])
 
+
+class RandomTests(unittest.TestCase):
+    def setUp(self):
+        logging.info('In RandomTests setUp()')
+
+    def test_check_user_auth(self):
+        # Add a contract with a user of liamhession
+        models.Contract(contract_id = 1, short_name = "test").put()
+        models.User(user_id = 1, google_username = "liamhession").put()
+        models.Combatant(combatant_id = 1, name = "Liam").put()
+        models.ContractCombatant(contract_id = 1, combatant_id = 1).put()
+        models.CombatantUser(combatant_id = 1, user_id = 1).put()
+
+        self.assertTrue(chalis.check_user_auth("test"))
+
+
 def test_main():
-    test_support.run_unittest(HomePageTest, CreateChallengeTest, FetchChallengeInfoTest, InviteTest)
+    test_support.run_unittest(HomePageTest, CreateChallengeTest, FetchChallengeInfoTest, InviteTest, RandomTests)
 
 if __name__ == '__main__':
     test_main()
