@@ -23,3 +23,9 @@ body{
 {
 	border: solid black;
 }
+
+#map-canvas
+{ 
+	height: 250px; 
+	width: 500px; 
+}
