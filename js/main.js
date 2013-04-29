@@ -22,7 +22,7 @@ $(document).ready(function(){
             type: 'POST',
             data: {'objective': $('#objective').val(),
                    'period': [$('#time-unit').val(), $('#time-length').val(), '' + $('#year').val() + $('#month').val() + $('#day').val()],
-                   'prize': [$('#prize-desc').html(), '', '', '']}
+                   'prize': [$('#first-desc').html(), $('#second-desc').html(), $('#snd2last-desc').html(), $('#last-desc').html()]}
         });
     });
 
