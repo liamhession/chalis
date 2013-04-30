@@ -63,9 +63,7 @@ class CreateChallenge(webapp2.RequestHandler):
         # Link contract and combatant
         link_contract_combatant(new_id, combatant_id)
 
-        logging.info("hw")
-        self.response.out.write("shot")
-        #self.redirect('/'+short_name+'/details')
+        self.redirect('/'+short_name+'/details?new=1')
 
 
 # Doesn't render a page, just where info is sent when any parameter is changed on the ChallengePage
@@ -83,22 +81,24 @@ class EditChallenge(webapp2.RequestHandler):
 # Renders details page where a challenge's info is seen and can be edited 
 class ChallengePage(webapp2.RequestHandler):
     def get(self, short_name):
+        new_challenge = self.request.get("new")
+        
         should_be_here = check_user_auth(short_name)
-        if not should_be_here:
+        if not should_be_here and not new_challenge:
             self.redirect('/')  #TODO: just have them see w/o editing
 
         # Get the relevant model's info
-        #name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
+        if not new_challenge:
+            name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
         
-        # Get stakes objects
-        #stakes_info = fetch_stakes_info(stakes_ids)
+            # Get stakes objects
+            stakes_info = fetch_stakes_info(stakes_ids)
 
-        #context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
+        context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
 
         # Render the page in context and display it
-        self.response.out.write("WHat's up")
-        #challenge_page = jinja_environment.get_template("pages/details.html")
-        #self.response.out.write(challenge_page.render(context))
+        challenge_page = jinja_environment.get_template("pages/details.html")
+        self.response.out.write(challenge_page.render(context))
 
 
 # Renders invite page where a user adds other people to the challenge
