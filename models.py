@@ -55,3 +55,7 @@ class User(ndb.Model):
     phone_number = ndb.IntegerProperty()
     challenges_won = ndb.IntegerProperty(default=0)
 
+class DesiredUsers(ndb.Model):
+    contract_id = ndb.IntegerProperty()
+    users = ndb.StringProperty(repeated=True)
+
