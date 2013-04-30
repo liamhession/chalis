@@ -186,6 +186,9 @@ class RandomTests(unittest.TestCase):
         self.assertTrue(chalis.check_user_auth("test"))
 
 
+    def test_add_desired_user(self):
+        return 1
+
 def test_main():
     test_support.run_unittest(HomePageTest, CreateChallengeTest, FetchChallengeInfoTest, InviteTest, RandomTests)
 

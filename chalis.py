@@ -165,7 +165,6 @@ class JoinPage(webapp2.RequestHandler):
             self.response.out.write(joined_page.render(context))
 
 
-
 # Render the form for checking in to the indicated challenge. Form different depending on objective
 class CheckinPage(webapp2.RequestHandler):
     def get(self, short_name):
@@ -185,10 +184,10 @@ class CheckinPage(webapp2.RequestHandler):
             gen_obj = GeneralObjective.query(GeneralObjective.contract_id == contract.contract_id).get()
             context = {'id' : gen_obj.gen_objective_id, 'objective' : gen_obj.objective_name}
             gen_checkin_page = jinja_environment.get_template("gen-checkin.html")
-            self.response.out.write(gen_checkin_page.render(context)
+            self.response.out.write(gen_checkin_page.render(context))
 
-        elif contract.objective_type == 'reddit':
-            return 1
+        ##elif contract.objective_type == 'reddit':
+          ##  return 1
 
 
 # Carries out the action of incrementing the current user's combatant's progress in this objective
