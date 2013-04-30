@@ -3,7 +3,8 @@
 
 $(document).ready(function(){
     
-    // click handler for the submit button on frontpage.html
+    /* This shouldnt be asynch. Its a post from a form
+		// click handler for the submit button on frontpage.html
     $('#new-challenge-short').click(function(evt){
         evt.preventDefault();
         $.ajax({
@@ -12,7 +13,8 @@ $(document).ready(function(){
             data: {'description': $('#short-desc').val()}
         });
     });
-
+		*/
+		
     // click handler for the submit button on details.html
     // TODO: I am now passing 'prize' as a string array. Haven't implement tabbed text area yet.
     $('#new-challenge-detailed').click(function(evt){
