@@ -9,6 +9,18 @@ libraries:
   version: latest  
 
 handlers:
+- url: /css
+  static_dir: css
+
+- url: /js
+  static_dir: js
+
+- url: /images
+  static_dir: images
+
+- url: /fonts
+  static_dir: fonts
+
 - url: /test.*
   script: gaeunit.py
 

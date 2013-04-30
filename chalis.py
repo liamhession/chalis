@@ -30,7 +30,7 @@ class HomePage(webapp2.RequestHandler):
             self.redirect(users.create_login_url(self.request.uri))
             
         context = {} #TODO
-        home = jinja_environment.get_template("pages/home.html")
+        home = jinja_environment.get_template("pages/frontpage.html")
         self.response.out.write(home.render(context))
 
 
@@ -44,11 +44,14 @@ class CreateChallenge(webapp2.RequestHandler):
         if not user:
             self.redirect(users.create_login_url(self.request.uri))
 
+        # Grab the username from their email
+        username = grab_username(user.email())
+
         # Create a new user model if this username is not in the db already
-        user_id = create_or_fetch_user(user) 
+        user_id = create_or_fetch_user(username)
         
         # Combatant details
-        combatant_id = create_combatant(user) 
+        combatant_id = create_combatant(username) 
                 
         # Link combatant and user
         link_combatant_user(combatant_id, user_id)
@@ -91,7 +94,7 @@ class ChallengePage(webapp2.RequestHandler):
         context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
 
         # Render the page in context and display it
-        challenge_page = jinja_environment.get_template("details.html")
+        challenge_page = jinja_environment.get_template("pages/details.html")
         self.response.out.write(challenge_page.render(context))
 
 
@@ -204,6 +207,10 @@ class StatusPage(webapp2.RequestHandler):
         self.response.out.write("Liam wins")
 
 ############### Unit-testable Functions Used By Handlers ##############
+def grab_username(email):
+    amp_idx = email.find("@")
+    return email[:amp_idx]
+
 # Returns whether or not the current user can see info related to challenge "short_name"
 def check_user_auth(short_name):
     user = users.get_current_user()
