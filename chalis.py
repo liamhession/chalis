@@ -37,8 +37,9 @@ class HomePage(webapp2.RequestHandler):
 # Create the relevant database items for a new challenge, given only the description so far.
 # Redirect to the challenge details page for the newly short-named challenge
 class CreateChallenge(webapp2.RequestHandler):
-    def post(self):
-        # Description is posted, user should be logged in...
+    def get(self):
+        logging.debug("yo")
+				# Description is posted, user should be logged in...
         new_name = self.request.get('description')
         user = users.get_current_user()
         if not user:
