@@ -33,20 +33,24 @@
 		</div>
 	</div>
 
-		
+		<button class="btn btn-large btn-primary offset10" type="button" id="challenge-updated">Save Changes</button>
 		<div class="container">
-		 <h1>Challenge Overview</h1><hr>
+		 <h1>Challenge Overview</h1> <hr>
 		 
 		 <div class="row">
 				<div class="span3"><h2>Objective:</h2></div>
 				<div class="span3 offset1">
 					Objective Type
 					<select class="span3" name="objective-type" id="objective">
-						<option value="highest-occurance">Highest Occurance</option>
+						<option value="highest-occurrence">Highest Occurrence</option>
 						<option value="karma">Reddit Karma</option>
 						<option value="location">Location Visits</option>
 					</select>
 				</div>
+                <div class="span3 offset2">
+                Objective Name
+                <input type="text" id="objective-name" placeholder="Action that comprises checkin" />
+                </div>
 		 </div>
 		 <hr>
 		 <div class="row">
@@ -54,9 +58,9 @@
 				<div class="span3 offset1">
 					Time Unit
 					<select class="span3" name="time-unit" id="time-unit">
-						<option value="day">Days</option>
-						<option value="week">Weeks</option>
-						<option value="month">Months</option>
+						<option value="days">Days</option>
+						<option value="weeks">Weeks</option>
+						<option value="months">Months</option>
 					</select>
 				</div>
 		 </div>
@@ -120,7 +124,7 @@
 		<hr>
 
 		<div class="row">
-			<button class="btn btn-large btn-primary offset4" type="button" id="new-challenge-detailed">Challenge Your Friends!</button>
+			<a href="invite"><button class="btn btn-large btn-primary offset9" type="button" id="new-challenge-detailed">Challenge Your Friends ></button></a>
 		</div>
 		
 		

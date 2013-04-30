@@ -5,6 +5,7 @@ import jinja2
 import os
 import json
 import logging
+import datetime
 
 from models import Contract
 from models import GeolocationObjective
@@ -37,9 +38,8 @@ class HomePage(webapp2.RequestHandler):
 # Create the relevant database items for a new challenge, given only the description so far.
 # Redirect to the challenge details page for the newly short-named challenge
 class CreateChallenge(webapp2.RequestHandler):
-    def get(self):
-        logging.debug("yo")
-				# Description is posted, user should be logged in...
+    def post(self):
+		# Description is posted, user should be logged in...
         new_name = self.request.get('description')
         user = users.get_current_user()
         if not user:
@@ -159,17 +159,17 @@ class JoinPage(webapp2.RequestHandler):
 
         # Tell them to get an invite if they weren't invited
         if invited == "not":
-            not_invited_page = jinja_environment.get_template("no-invite.html")
+            not_invited_page = jinja_environment.get_template("pages/no-invite.html")
             self.response.out.write(not_invited_page.render())
         
         elif invited == "already":
-            already_joined_page = jinja_environment.get_template("already-joined.html")
+            already_joined_page = jinja_environment.get_template("pages/already-joined.html")
             self.response.out.write(already_joined_page.render())
         
         elif invited == "yes":
             # Render page to ask user what combatant they are
             context = {}
-            joined_page = jinja_environment.get_template("joined.html")
+            joined_page = jinja_environment.get_template("pages/joined.html")
             self.response.out.write(joined_page.render(context))
 
 
@@ -181,17 +181,17 @@ class CheckinPage(webapp2.RequestHandler):
             self.redirect('/')
         
         contract = Contract.query(Contract.short_name == short_name).get()
-        
+        logging.info(contract)
         if contract.objective_type == 'geolocation':
             geo_obj = GeolocationObjective.query(GeolocationObjective.contract_id == contract.contract_id).get()
             context = {'id' : geo_obj.geo_objective_id, 'location' : geo_obj.checkin_loc, 'radius' : geo_obj.checkin_radius, 'placename' : geo_obj.loc_name}
-            geo_checkin_page = jinja_environment.get_template("geo-checkin.html")
+            geo_checkin_page = jinja_environment.get_template("pages/geo-checkin.html")
             self.response.out.write(geo_checkin_page.render(context))
 
-        elif contract.objective_type == 'general':
+        elif contract.objective_type == 'highest-occurrence':
             gen_obj = GeneralObjective.query(GeneralObjective.contract_id == contract.contract_id).get()
             context = {'id' : gen_obj.gen_objective_id, 'objective' : gen_obj.objective_name}
-            gen_checkin_page = jinja_environment.get_template("gen-checkin.html")
+            gen_checkin_page = jinja_environment.get_template("pages/gen-checkin.html")
             self.response.out.write(gen_checkin_page.render(context))
 
         ##elif contract.objective_type == 'reddit':
@@ -324,13 +324,23 @@ def update_challenge(short_name, args_obj):
     contract = Contract.query(Contract.short_name == short_name).get()
 
     # Update all fields represented in args_obj
-    for k, v in args_obj:
-        if k == "description":
-            contract.challenge_name = v
-        elif k == "objective":
-            contract.objective_type = v
-        elif k == "":
-            print "woch"
+    #contract.challenge_name = args_obj["description"]
+    contract.objective_type = str(args_obj["objective"])
+    contract.time_unit = str(args_obj["unit"])
+    contract.time_period = int(args_obj["length"])
+    contract.start_date = datetime.date(int(args_obj["year"]), int(args_obj["month"]), int(args_obj["day"]))
+    
+    contract.put()
+    
+    # Get current highest GeneralObjective id
+    top_objective = GeneralObjective.query().order(-GeneralObjective.gen_objective_id).get()
+    if top_objective:
+        new_id = top_objective.gen_objective_id + 1
+    else:
+        new_id = 1
+
+    # Make new GeneralObjective model
+    GeneralObjective(objective_name = str(args_obj["objective-name"]), contract_id = contract.contract_id, gen_objective_id = new_id).put()
 
 
 def create_or_fetch_user(username):
@@ -441,12 +451,18 @@ def add_desired_user(short_name, email):
     contract = Contract.query(Contract.short_name == short_name).get()
     players = DesiredUsers.query(DesiredUsers.contract_id == contract.contract_id).get()
 
-    # Update list of users that have been invited, then put it back in db
-    players.users.append(email)
-    players.put()
+    # Create new DesiredUsers object if none
+    if not players:
+        DesiredUsers(contract_id = contract.contract_id, users = [email]).put()
+
+    # Otherwise update list of users that have been invited, then put it back in db
+    else:
+        players.users.append(email)
+        players.put()
 
 
 def email_invite(short_name, email, desc):
+    user = users.get_current_user()
     sender = user.email()
     subject = "Step up to the challenge on Chalis!"
     body = """
