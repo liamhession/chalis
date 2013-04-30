@@ -30,6 +30,26 @@ body{
 	width: 500px; 
 }
 
+#gen-id
+{
+	display:none;
+}
+
+#location
+{
+	display:none;
+}
+
+#radius
+{
+	display:none;
+}
+
+#geo-id
+{
+	display:none;
+}
+
 .form-signin {
 	max-width: 300px;
 	padding: 19px 29px 29px;
