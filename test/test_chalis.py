@@ -133,7 +133,7 @@ class InviteTest(unittest.TestCase):
 
     def test_invite_context_creation(self):
         # Will build up a context object in the same way InvitePage does
-        context = {'joined' : {}}
+        context = {'joined' : []}
         
         # First need to add combatant-users for a new contract,
         models.Contract(contract_id = 1).put()
@@ -162,12 +162,13 @@ class InviteTest(unittest.TestCase):
                 users_array.append(user_info.google_username+"@gmail.com") 
 
             # Put the combatant-users object into context's array of these objects
-            context['joined'][combatant.name] = users_array
+            context['joined'].append({'combatant': combatant.name, 'users': users_array})
 
         # Check that it worked as expected
-        self.assertEqual("liam@gmail.com", context['joined']["Liam"][0])
-        self.assertTrue("jeff@gmail.com", context['joined']["Best Team"])
-        self.assertTrue("bob2@gmail.com", context['joined']["Best Team"])
+        liam_combatant = {'combatant': "Liam", 'users': ["liam@gmail.com"]}
+        team_combatant = {'combatant': "Best Team", 'users': ["jeff@gmail.com", "bob2@gmail.com"]}
+        self.assertTrue(liam_combatant in context['joined'])
+        self.assertTrue(team_combatant in context['joined'])
 
 
 class RandomTests(unittest.TestCase):

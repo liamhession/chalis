@@ -7,9 +7,10 @@ import logging
 
 from models import Contract
 from models import GeolocationObjective
+from models import GeneralObjective
 from models import Stakes
 from models import ContractCombatant
-from models import GeolocationProgress
+from models import GeneralProgress
 from models import Combatant
 from models import CombatantUser
 from models import User
@@ -100,7 +101,7 @@ class InvitePage(webapp2.RequestHandler):
             self.redirect('/')
 
         # Build up context that only contains an array of combatant_name : [user1, user2] objects
-        context = {'joined' : {}}
+        context = {'joined' : []}
 
         # Show a list of already-joined combatants with their usernames
         contract_id = Contract.query(Contract.short_name == short_name).get()
@@ -116,7 +117,7 @@ class InvitePage(webapp2.RequestHandler):
                 users_array.append(user_info.google_username+"@gmail.com") 
 
             # Put the combatant-users object into context's array of these objects
-            context.joined[combatant.name] = users_array
+            context.joined.append({'combatant': combatant.name, 'users': users_array})
 
         # Render the page in context and display it
         invite_page = jinja_environment.get_template("invite.html")
@@ -131,14 +132,47 @@ class SendInvite(webapp2.RequestHandler):
 
 
 # Page arrived at when accepting an invitation to join a challenge. User chooses combatant name/team
-# class JoinPage(webapp2.RequestHandler):
-
+class JoinPage(webapp2.RequestHandler):
+    def get(self, short_name):
+        self.response.out.write("Wanna join?")    
 
 # Render the form for checking in to the indicated challenge. Form different depending on objective
 class CheckinPage(webapp2.RequestHandler):
     def get(self, short_name):
-        self.response.out.write("hi")        
+        should_be_here = check_user_auth(short_name)
+        if not should_be_here:
+            self.redirect('/')
+        
+        contract = Contract.query(Contract.short_name == short_name).get()
+        
+        if contract.objective_type == 'geolocation':
+            geo_obj = GeolocationObjective.query(GeolocationObjective.contract_id == contract.contract_id).get()
+            context = {'id' : geo_obj.geo_objective_id, 'location' : geo_obj.checkin_loc, 'radius' : geo_obj.checkin_radius, 'placename' : geo_obj.loc_name}
+            geo_checkin_page = jinja_environment.get_template("geo-checkin.html")
+            self.response.out.write(geo_checkin_page.render(context))
 
+        elif contract.objective_type == 'general':
+            gen_obj = GeneralObjective.query(GeneralObjective.contract_id == contract.contract_id).get()
+            context = {'id' : gen_obj.gen_objective_id, 'objective' : gen_obj.objective_name}
+            gen_checkin_page = jinja_environment.get_template("gen-checkin.html")
+            self.response.out.write(gen_checkin_page.render(context)
+
+        elif contract.objective_type == 'reddit':
+            return 1
+
+
+# Carries out the action of incrementing the current user's combatant's progress in this objective
+class CheckinAction(webapp2.RequestHandler):
+    def post(self, short_name):
+        obj_id = self.request.get('objective_id')
+        combatant = fetch_current_combatant(short_name)
+        update_progress(obj_id, combatant.combatant_id)
+
+
+# Renders some kind of infographic about the current state of the challenge
+class StatusPage(webapp2.RequestHandler):
+    def get(self, short_name):
+        self.response.out.write("Liam wins")
 
 ############### Unit-testable Functions Used By Handlers ##############
 # Returns whether or not the current user can see info related to challenge "short_name"
@@ -322,4 +356,34 @@ def fetch_users_info(combatant_id):
 
     return users
 
-app = webapp2.WSGIApplication([('/', HomePage), ('/new', CreateChallenge), ('/(.*)/edit', EditChallenge), ('/(.*)/details', ChallengePage), ('/(.*)/invite', InvitePage), ('/(.*)/send-invite', SendInvite)], debug=True)##, ('/(.*)/join', JoinPage), ('/(.*)/status', StatusPage), ('/(.*)/checkin', CheckinPage)], debug=True)
+
+def fetch_current_combatant(short_name):
+    # Find what user is logged in 
+    user = users.get_current_user()
+    if not user:
+        self.redirect('/')
+   
+    # Find all the users associated with this challenge
+    contract_id = Contract.query(Contract.short_name == short_name).get().contract_id
+    combatants_info = fetch_combatants_info(contract_id)
+
+    # Get all users associated with each distinct combatant 
+    for combatant in combatants_info:
+        users_info = fetch_users_info(combatant.combatant_id)
+
+        # Return current combatant if user is found
+        for user_info in users_info:
+            if user_info.google_username == str(user):
+                return combatant
+
+
+def update_progress(obj_id, com_id):
+    # Find that progress entry
+    progress = GeneralProgress.query(GeneralProgress.objective_id == obj_id, GeneralProgress.combatant_id == com_id).get()
+    # Increment its checkin_count, set current time, and put it back
+    progress.checkin_count += 1
+    progress.last_checkin = datetime.date.today()
+    progress.put()
+
+
+app = webapp2.WSGIApplication([('/', HomePage), ('/new', CreateChallenge), ('/(.*)/edit', EditChallenge), ('/(.*)/details', ChallengePage), ('/(.*)/invite', InvitePage), ('/(.*)/send-invite', SendInvite), ('/(.*)/join', JoinPage), ('/(.*)/status', StatusPage), ('/(.*)/checkin', CheckinPage), ('/(.*)/do-checkin', CheckinAction)], debug=True)
