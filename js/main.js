@@ -2,17 +2,6 @@
 // var challenge_name = {{ challenge_name }};
 
 $(document).ready(function(){
-    
-    // click handler for the submit button on frontpage.html
-    $('#new-challenge-short').click(function(evt){
-        evt.preventDefault();
-        $.ajax({
-            url: '/new',
-            type: 'POST',
-            data: {'description': $('#short-desc').val()}
-        });
-    });
-
     // click handler for the submit button on details.html
     // TODO: I am now passing 'prize' as a string array. Haven't implement tabbed text area yet.
     $('#new-challenge-detailed').click(function(evt){

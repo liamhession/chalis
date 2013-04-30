@@ -63,7 +63,9 @@ class CreateChallenge(webapp2.RequestHandler):
         # Link contract and combatant
         link_contract_combatant(new_id, combatant_id)
 
-        self.redirect('/'+short_name+'/details')
+        logging.info("hw")
+        self.response.out.write("shot")
+        #self.redirect('/'+short_name+'/details')
 
 
 # Doesn't render a page, just where info is sent when any parameter is changed on the ChallengePage
@@ -86,16 +88,17 @@ class ChallengePage(webapp2.RequestHandler):
             self.redirect('/')  #TODO: just have them see w/o editing
 
         # Get the relevant model's info
-        name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
+        #name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
         
         # Get stakes objects
-        stakes_info = fetch_stakes_info(stakes_ids)
+        #stakes_info = fetch_stakes_info(stakes_ids)
 
-        context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
+        #context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
 
         # Render the page in context and display it
-        challenge_page = jinja_environment.get_template("pages/details.html")
-        self.response.out.write(challenge_page.render(context))
+        self.response.out.write("WHat's up")
+        #challenge_page = jinja_environment.get_template("pages/details.html")
+        #self.response.out.write(challenge_page.render(context))
 
 
 # Renders invite page where a user adds other people to the challenge
@@ -219,7 +222,12 @@ def check_user_auth(short_name):
         return False
 
     # Find all the users associated with this challenge
-    contract_id = Contract.query(Contract.short_name == short_name).get().contract_id
+    contract = Contract.query(Contract.short_name == short_name).get()
+    if not contract:
+        logging.info("Couldnt find that one")
+        return False
+
+    contract_id = contract.contract_id
     combatants_info = fetch_combatants_info(contract_id)
 
     users_array = []
@@ -278,8 +286,12 @@ def create_challenge(new_id, short_name, full_name):
 
 
 def fetch_stakes_info(stakes_ids):
+    if not stakes_ids:
+        return []
+
     # Get all stakes objects, then create an array of dictionaries
     stakes = Stakes.query(Stakes.stakes_id.IN(stakes_ids)).fetch(20)
+
     stakes_info = []
     for stake in stakes:
         stakes_info.append({stake.position:stake.stakes_desc})
