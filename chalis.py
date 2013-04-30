@@ -88,6 +88,7 @@ class ChallengePage(webapp2.RequestHandler):
         if not should_be_here and not new_challenge:
             self.redirect('/')  #TODO: just have them see w/o editing
 
+        name = obj_type = length = unit = start = con_id = stakes_ids = stakes_info = None
         # Get the relevant model's info
         if not new_challenge:
             name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)

@@ -9,16 +9,16 @@ libraries:
   version: latest  
 
 handlers:
-- url: /css
+- url: .*/css
   static_dir: css
 
-- url: /js
+- url: .*/js
   static_dir: js
 
-- url: /images
+- url: .*/images
   static_dir: images
 
-- url: /fonts
+- url: .*/fonts
   static_dir: fonts
 
 - url: /test.*
