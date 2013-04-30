@@ -114,7 +114,7 @@ class InvitePage(webapp2.RequestHandler):
         context = {'joined' : []}
 
         # Show a list of already-joined combatants with their usernames
-        contract_id = Contract.query(Contract.short_name == short_name).get()
+        contract_id = Contract.query(Contract.short_name == short_name).get().contract_id
         combatants_info = fetch_combatants_info(contract_id)
 
         # Get all users associated with each distinct combatant 
@@ -127,10 +127,10 @@ class InvitePage(webapp2.RequestHandler):
                 users_array.append(user_info.google_username+"@gmail.com") 
 
             # Put the combatant-users object into context's array of these objects
-            context.joined.append({'combatant': combatant.name, 'users': users_array})
+            context['joined'].append({'combatant': combatant.name, 'users': users_array})
 
         # Render the page in context and display it
-        invite_page = jinja_environment.get_template("invite.html")
+        invite_page = jinja_environment.get_template("pages/invite.html")
         self.response.out.write(invite_page.render(context))
 
 
