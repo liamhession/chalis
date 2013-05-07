@@ -259,36 +259,59 @@ class CheckinAction(webapp2.RequestHandler):
 # Renders some kind of infographic about the current state of the challenge
 class StatusPage(webapp2.RequestHandler):
     def get(self, short_name):
-        # Get the contract info, combatants, and stakes involved
+        # Grab the contract info, and combatants involved
         name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
         combatants = fetch_combatants_info(con_id)
-        stakes = fetch_stakes_info(stakes_ids)
 
-        
+        # Get each combatant's checkin count and add that info to the combatant object
+        template_coms = fetch_combatant_counts(con_id, obj_type, combatants)
+                
         # Create context and render page
         # Find how many 10ths into the challenge we are, so we can draw a bar that many spans long
-        diff = datetime.date.today() - start
-        days_in = diff.days
-        multiplier = 1
-        if unit == "weeks":
-            multiplier = 7
-        if unit == "months":
-            multiplier = 30
-        days_in_challenge = length*multiplier
-        percent_done = float(days_in)/days_in_challenge
-        logging.info(percent_done)
-        fraction_over_10 = int(percent_done*10)
+        fraction_over_10 = num_tenths_in(start, unit, length)
 
         # Make a nice start object
         start = {'month': start.month, 'day': start.day}
 
-        context = {'name': name, 'start': start, 'spans_complete': fraction_over_10}
+        context = {'name': name, 'start': start, 'spans_complete': fraction_over_10, 'combatants': template_coms}
         status_page = jinja_environment.get_template("pages/status.html")
         self.response.out.write(status_page.render(context))
 
 
 
 ############### Unit-testable Functions Used By Handlers ##############
+def fetch_combatant_counts(con_id, obj_type, combatants):
+    # Get objective_id in order to later get progress info
+    if obj_type == 'location':
+        obj_id = GeolocationObjective.query(GeolocationObjective.contract_id == con_id).get().geo_objective_id
+    elif obj_type == 'highest-occurrence':
+        obj_id = GeneralObjective.query(GeneralObjective.contract_id == con_id).get().gen_objective_id
+
+    template_coms = []
+    for com in combatants:
+        curr_id = com.combatant_id
+        count = GeneralProgress.query(GeneralProgress.objective_id == obj_id, GeneralProgress.combatant_id == curr_id).get().checkin_count
+        curr_com = {}
+        curr_com["name"] = com.name
+        curr_com["count"] = count
+        template_coms.append(curr_com)
+    return template_coms
+
+
+def num_tenths_in(start_date, unit, length):
+    diff = datetime.date.today() - start_date
+    days_in = diff.days
+    multiplier = 1
+    if unit == "weeks":
+        multiplier = 7
+    if unit == "months":
+        multiplier = 30
+    days_in_challenge = length*multiplier
+    percent_done = float(days_in)/days_in_challenge
+    fraction_over_10 = int(percent_done*10)
+    return fraction_over_10
+
+
 def grab_username(email):
     amp_idx = email.find("@")
     return email[:amp_idx]

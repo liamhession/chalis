@@ -31,11 +31,6 @@ class HomePageTest(unittest.TestCase):
     def setUp(self):
         self.application = chalis.app
 
-    def test_default_page(self):
-        app = TestApp(self.application)
-        response = app.get('/')
-        self.assertEqual('200 OK', response.status)
-        self.assertTrue('Hello, world!' in response) 
         
 class CreateChallengeTest(unittest.TestCase):
     def setUp(self):
@@ -67,7 +62,7 @@ class FetchChallengeInfoTest(unittest.TestCase):
         # Info to be entered in so we can later retreive it
         name = "Great new challenge"
         short_name = "Greatnewchallenge" 
-        obj_type = "geolocation"
+        obj_type = "location"
         length = 1
         unit = "weeks"
         start = datetime.date.today()
@@ -169,6 +164,34 @@ class InviteTest(unittest.TestCase):
         team_combatant = {'combatant': "Best Team", 'users': ["jeff@gmail.com", "bob2@gmail.com"]}
         self.assertTrue(liam_combatant in context['joined'])
         self.assertTrue(team_combatant in context['joined'])
+
+
+class StatusPageTests(unittest.TestCase):
+    def setUp(self):
+        logging.info('In StatusPage setUp()')
+
+    def test_fetch_combatant_counts(self):
+        # Add a contract with two users, each having checked in a few times
+        models.Contract(contract_id=1, short_name="test", objective_type="location").put()
+        models.GeolocationObjective(geo_objective_id=1, contract_id=1).put()
+        models.User(user_id=1, google_username="test1").put()
+        models.User(user_id=2, google_username="test2").put()
+        com1 = models.Combatant(combatant_id=1, name="1")
+        com2 = models.Combatant(combatant_id=2, name="2")
+        com1.put()
+        com2.put()
+        models.CombatantUser(combatant_id=1, user_id=1).put()
+        models.CombatantUser(combatant_id=2, user_id=2).put()
+        models.ContractCombatant(contract_id=1, combatant_id=1).put()
+        models.ContractCombatant(contract_id=1, combatant_id=2).put()
+        models.GeneralProgress(objective_id=1, combatant_id=1, checkin_count=3).put()
+        models.GeneralProgress(objective_id=1, combatant_id=2, checkin_count=4).put()
+
+        com_counts = chalis.fetch_combatant_counts(1, "location", [com1, com2])
+        
+        # 1 should have 3, 2 should have 4
+        self.assertTrue({'name': "1", 'count': 3} in com_counts)
+        self.assertTrue({'name': "2", 'count': 4} in com_counts)
 
 
 class RandomTests(unittest.TestCase):
