@@ -5,7 +5,7 @@ class Contract(ndb.Model):
     contract_id = ndb.IntegerProperty()
     challenge_name = ndb.StringProperty()
     short_name = ndb.StringProperty()
-    objective_type = ndb.StringProperty(choices=['geolocation', 'reddit', 'highest-occurrence'])
+    objective_type = ndb.StringProperty(choices=['location', 'reddit', 'highest-occurrence'])
     time_period = ndb.IntegerProperty()
     time_unit = ndb.StringProperty(choices=['days', 'weeks', 'months'])
     start_date = ndb.DateProperty()

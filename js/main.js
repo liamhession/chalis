@@ -3,38 +3,58 @@
 
 $(document).ready(function(){
 
-    
-    /* This shouldnt be asynch. Its a post from a form
-		// click handler for the submit button on frontpage.html
-    $('#new-challenge-short').click(function(evt){
-        evt.preventDefault();
-        $.ajax({
-            url: '/new',
-            type: 'POST',
-            data: {'description': $('#short-desc').val()}
-        });
+    //////////////// Home page ///////////////////////
+    // Handle a click on any of the top-challenge list elements on the home page
+    //  will create a new challenge with the given description and the current user in it
+    $('.top-challenge').click(function() {
+        var description = $(this).find('td').html();
+        
+        // Put the clicked-on description in the hidden form element, then submit form
+        $('#short-desc').val(description);
     });
-		*/
-	
-    // Changing details results in an ajax submission of those new details
-   /* $('.form-option').change(function() {
-        console.log(this);
-    });*/
-    
-    // click handler for the submit button on details.html
+
+    //////////////// Details page ///////////////////////
+    // When the challenge type changes, either make the objective name field dis- or appear
+    $('#dk_container_objective .dk_options_inner a').click(function() { 
+        var objectiveType = $(this).html();
+        if (objectiveType == "Highest Occurrence") {
+            $('#objective-type-block').after('<div class="span3 offset2" id="objective-name-block"> \
+                Objective Name \
+                <input type="text" id="objective-name" placeholder="Action that comprises checkin"> \
+                </div>');
+        }
+        else {
+            $('#objective-name-block').remove();
+        }   
+    });
+
+    // click handler for the "Save Changes" button
     // TODO: I am now passing 'prize' as a string array. Haven't implement tabbed text area yet.
     $('#challenge-updated').click(function(evt){
         evt.preventDefault();
-        $.ajax({
-            url: 'edit',
-            type: 'POST',
-            data: {'objective': $('#objective').val(),
-                   'objective-name': $('#objective-name').val(),
+
+        // Create a data module that contains all the essential, add to it based on objective
+        var data = {'objective': $('#objective').val(),
                    'unit': $('#time-unit').val(),
                    'length': $('#time-length').val(),
                    'year': $('#year').val(),
                    'month': $('#month').val(),
-                   'day': $('#day').val()}
+                   'day': $('#day').val()
+                   };                
+        if ($('#objective').val() == "highest-occurrence") {
+            data['objective-name'] = $('#objective-name').val();
+        }
+        else if ($('#objective').val() == "location") {
+            data['checkin-loc'] = "23.44, -21.04";
+            data['radius'] = 200;
+            data['checkin-loc-name'] = "Cravings";
+        }
+
+
+        $.ajax({
+            url: 'edit',
+            type: 'POST',
+            data: data
         });
     });
 

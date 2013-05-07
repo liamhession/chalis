@@ -39,18 +39,25 @@
 		 
 		 <div class="row">
 				<div class="span3"><h2>Objective:</h2></div>
-				<div class="span3 offset1">
+				<div class="span3 offset1" id="objective-type-block">
 					Objective Type
 					<select class="span3" name="objective-type" id="objective">
-						<option value="highest-occurrence">Highest Occurrence</option>
-						<option value="karma">Reddit Karma</option>
-						<option value="location">Location Visits</option>
+						<option value="highest-occurrence"{% if objective == 'highest-occurrence' %} selected{% endif %}>Highest Occurrence</option>
+						<option value="reddit"{% if objective == 'reddit' %} selected{% endif %}>Reddit Karma</option>
+						<option value="location"{% if objective == 'location' %} selected{% endif %}>Location Visits</option>
 					</select>
 				</div>
-                <div class="span3 offset2">
+
+                {% if objective == 'highest-occurrence' %}
+                <div class="span3 offset2" id="objective-name-block">
                 Objective Name
                 <input type="text" id="objective-name" placeholder="Action that comprises checkin" />
                 </div>
+                {% endif %}
+
+                {% if objective == 'location' %}
+                <div>Geo selector</div>
+                {% endif %}
 		 </div>
 		 <hr>
 		 <div class="row">
@@ -58,9 +65,9 @@
 				<div class="span3 offset1">
 					Time Unit
 					<select class="span3" name="time-unit" id="time-unit">
-						<option value="days">Days</option>
-						<option value="weeks">Weeks</option>
-						<option value="months">Months</option>
+						<option value="days"{% if time_units == 'days' %} selected{% endif %}>Days</option>
+						<option value="weeks"{% if time_units == 'weeks' %} selected{% endif %}>Weeks</option>
+						<option value="months"{% if time_units == 'months' %} selected{% endif %}>Months</option>
 					</select>
 				</div>
 		 </div>
@@ -68,23 +75,22 @@
 				
 				<div class="span3 offset4">
 					Length of Time
-					<input type="number" value="" placeholder="" class="span3" id="time-length" />
+					<input type="number" value="{% if length %}{{ length }}{% endif %}" placeholder="3" class="span2" id="time-length" />
 				</div>
 		 </div>
 		 
 		 	<div class="row">
-				
 				<div class="span1 offset4">
 					Month
-					<input type="number" value="1" placeholder="" class="span1" id="month" />
+					<input type="number" value="{% if start_date %}{{ start_date.month }}{% endif %}" placeholder="1" class="span1" id="month" />
 				</div>
 				<div class="span1">
 					Day
-					<input type="number" value="1" placeholder="" class="span1" id="day" />
+					<input type="number" value="{% if start_date %}{{ start_date.day }}{% endif %}" placeholder="1" class="span1" id="day" />
 				</div>				
 				<div class="span1">
 					Year
-					<input type="number" value="2013" placeholder="2013" class="span2" id="year" />
+					<input type="number" value="{% if start_date %}{{ start_date.year }}{% endif %}" placeholder="2013" class="span2" id="year" />
 				</div>					
 		 </div>
 		 <hr>

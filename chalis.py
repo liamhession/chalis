@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import datetime
+from google.appengine.ext import ndb
 
 from models import Contract
 from models import GeolocationObjective
@@ -30,7 +31,28 @@ class HomePage(webapp2.RequestHandler):
         if not user: 
             self.redirect(users.create_login_url(self.request.uri))
             
-        context = {} #TODO
+        # Create a dictionary of the number of users in each challenge
+        contract_users = {}
+        all_contract_combatants = ContractCombatant.query().fetch(100)
+        for con_com in all_contract_combatants:
+            users_num = CombatantUser.query(CombatantUser.combatant_id == con_com.combatant_id).count()
+            if con_com.contract_id in contract_users:
+                contract_users[con_com.contract_id] += users_num
+            else:
+                contract_users[con_com.contract_id] = users_num
+        
+        # Find the 3 contract ids with the most users involved
+        desc = sorted(contract_users.iteritems(), key=lambda x:x[1], reverse=True) 
+
+        challenge1_name = challenge2_name = challenge3_name = ""       
+        if len(desc) > 0:
+            challenge1_name = Contract.query(Contract.contract_id == desc[0][0]).get().challenge_name
+        if len(desc) > 1:
+            challenge2_name = Contract.query(Contract.contract_id == desc[1][0]).get().challenge_name
+        if len(desc) > 2:
+            challenge3_name = Contract.query(Contract.contract_id == desc[0][0]).get().challenge_name
+
+        context = {'exampleText': "Who runs the most miles in a month?", 'topChallenge1': challenge1_name, 'topChallenge2': challenge2_name, 'topChallenge3': challenge3_name}
         home = jinja_environment.get_template("pages/frontpage.html")
         self.response.out.write(home.render(context))
 
@@ -95,6 +117,10 @@ class ChallengePage(webapp2.RequestHandler):
         
             # Get stakes objects
             stakes_info = fetch_stakes_info(stakes_ids)
+
+        # Convert start's DateProperty format to something usable in template if it is set
+        if start:
+            start = {'month': start.month, 'day': start.day, 'year': start.year}
 
         context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
 
@@ -182,9 +208,9 @@ class CheckinPage(webapp2.RequestHandler):
         
         contract = Contract.query(Contract.short_name == short_name).get()
         logging.info(contract)
-        if contract.objective_type == 'geolocation':
+        if contract.objective_type == 'location':
             geo_obj = GeolocationObjective.query(GeolocationObjective.contract_id == contract.contract_id).get()
-            context = {'id' : geo_obj.geo_objective_id, 'location' : geo_obj.checkin_loc, 'radius' : geo_obj.checkin_radius, 'placename' : geo_obj.loc_name}
+            context = {'id' : geo_obj.geo_objective_id, 'location' : str(geo_obj.checkin_loc), 'radius' : geo_obj.checkin_radius, 'placename' : geo_obj.loc_name}
             geo_checkin_page = jinja_environment.get_template("pages/geo-checkin.html")
             self.response.out.write(geo_checkin_page.render(context))
 
@@ -194,8 +220,11 @@ class CheckinPage(webapp2.RequestHandler):
             gen_checkin_page = jinja_environment.get_template("pages/gen-checkin.html")
             self.response.out.write(gen_checkin_page.render(context))
 
-        ##elif contract.objective_type == 'reddit':
-          ##  return 1
+        elif contract.objective_type == 'reddit':
+            return 1
+
+        elif contract.objective_type == None:
+            self.redirect('/'+short_name+'/details')
 
 
 # Carries out the action of incrementing the current user's combatant's progress in this objective
@@ -332,15 +361,29 @@ def update_challenge(short_name, args_obj):
     
     contract.put()
     
-    # Get current highest GeneralObjective id
-    top_objective = GeneralObjective.query().order(-GeneralObjective.gen_objective_id).get()
-    if top_objective:
-        new_id = top_objective.gen_objective_id + 1
-    else:
-        new_id = 1
+    # Enter in Objective models
+    if contract.objective_type == "highest-occurrence":
+        # Get current highest GeneralObjective id
+        top_objective = GeneralObjective.query().order(-GeneralObjective.gen_objective_id).get()
+        if top_objective:
+            new_id = top_objective.gen_objective_id + 1
+        else:
+            new_id = 1
 
-    # Make new GeneralObjective model
-    GeneralObjective(objective_name = str(args_obj["objective-name"]), contract_id = contract.contract_id, gen_objective_id = new_id).put()
+        # Make new GeneralObjective model
+        GeneralObjective(objective_name = str(args_obj["objective-name"]), contract_id = contract.contract_id, gen_objective_id = new_id).put()
+
+    elif contract.objective_type == "location":
+        logging.info("location")
+        # Get current highest GeolocationObjective id
+        top_objective = GeolocationObjective.query().order(-GeolocationObjective.geo_objective_id).get()
+        if top_objective:
+            new_id = top_objective.geo_objective_id + 1
+        else:
+            new_id = 1
+
+        # Make new GeolocationObjective model
+        GeolocationObjective(checkin_loc = ndb.GeoPt(args_obj["checkin-loc"]), checkin_radius = args_obj["radius"], loc_name = args_obj["checkin-loc-name"], geo_objective_id = new_id, contract_id = contract.contract_id).put()
 
 
 def create_or_fetch_user(username):
