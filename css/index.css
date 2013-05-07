@@ -35,6 +35,20 @@ body{
 	display:none;
 }
 
+#progress-bar
+{
+    background-color: green;
+    height: 8px;
+    border: 1px solid gray;
+}
+
+#remaining-bar
+{
+    background-color: gray;
+    height: 8px;
+    border: 1px solid gray;
+}
+
 .form-signin {
 	max-width: 300px;
 	padding: 19px 29px 29px;
