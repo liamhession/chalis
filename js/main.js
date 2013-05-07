@@ -64,8 +64,19 @@ $(document).ready(function(){
     $('#geo-checkin').click(function(){
         var canCheckin = true;
         // Check that they didn't check in at this location fewer than 2 hrs ago
-        if ($('#last-checkin').html() != "") {
-            // Get time-stamp of the current moment to compare to last checkin
+        var lastCheckinTimestamp = $('#last-checkin').html();
+        if (lastCheckinTimestamp != "") {
+            // Get time-stamp of the current moment, GMT to compare to last checkin
+            var currTimestamp = Math.floor((new Date()).getTime() / 1000);
+            var secsIn2Hrs = 2*60*60;
+            canCheckin = (currTimestamp - lastCheckinTimestamp) > secsIn2Hrs;
+        }
+        
+        // If they can't check in at this point notify them they're trying too often
+        if (!canCheckin) {
+            var minsTillNext = Math.floor((secsIn2Hrs - (currTimestamp - lastCheckinTimestamp))/60);
+            $('#geo-checkin').html("Wait "+minsTillNext+" min to checkin again");
+            return;
         }
 
         // Check that they are actually within the correct radius of the location

@@ -30,22 +30,7 @@ body{
 	width: 500px; 
 }
 
-#gen-id
-{
-	display:none;
-}
-
-#location
-{
-	display:none;
-}
-
-#radius
-{
-	display:none;
-}
-
-#geo-id
+.hidden
 {
 	display:none;
 }
