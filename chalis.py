@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import datetime
+import time
 from google.appengine.ext import ndb
 
 from models import Contract
@@ -50,7 +51,7 @@ class HomePage(webapp2.RequestHandler):
         if len(desc) > 1:
             challenge2_name = Contract.query(Contract.contract_id == desc[1][0]).get().challenge_name
         if len(desc) > 2:
-            challenge3_name = Contract.query(Contract.contract_id == desc[0][0]).get().challenge_name
+            challenge3_name = Contract.query(Contract.contract_id == desc[2][0]).get().challenge_name
 
         context = {'exampleText': "Who runs the most miles in a month?", 'topChallenge1': challenge1_name, 'topChallenge2': challenge2_name, 'topChallenge3': challenge3_name}
         home = jinja_environment.get_template("pages/frontpage.html")
@@ -206,17 +207,37 @@ class CheckinPage(webapp2.RequestHandler):
         if not should_be_here:
             self.redirect('/')
         
+        # Get this challenge's contract for use in finding objective info
         contract = Contract.query(Contract.short_name == short_name).get()
-        logging.info(contract)
+        # And the combatant info for use in finding progress
+        combatant = fetch_current_combatant(short_name)
+  
+        # Switch on objective type
         if contract.objective_type == 'location':
             geo_obj = GeolocationObjective.query(GeolocationObjective.contract_id == contract.contract_id).get()
-            context = {'id' : geo_obj.geo_objective_id, 'location' : str(geo_obj.checkin_loc), 'radius' : geo_obj.checkin_radius, 'placename' : geo_obj.loc_name}
+            # Find last checkin date for context
+            last_checkin = last_checkin_date(geo_obj.geo_objective_id, combatant.combatant_id)
+            if last_checkin:
+                last_checkin = time.mktime(last_checkin.timetuple())
+            else:
+                last_checkin = ""
+
+            # Create context and render page
+            context = {'id': geo_obj.geo_objective_id, 'location': str(geo_obj.checkin_loc), 'radius': geo_obj.checkin_radius, 'placename': geo_obj.loc_name, 'last_checkin': last_checkin}
             geo_checkin_page = jinja_environment.get_template("pages/geo-checkin.html")
             self.response.out.write(geo_checkin_page.render(context))
 
         elif contract.objective_type == 'highest-occurrence':
             gen_obj = GeneralObjective.query(GeneralObjective.contract_id == contract.contract_id).get()
-            context = {'id' : gen_obj.gen_objective_id, 'objective' : gen_obj.objective_name}
+            # Find last checkin date for context
+            last_checkin = last_checkin_date(gen_obj.gen_objective_id, combatant.combatant_id)
+            if last_checkin:
+                last_checkin = time.mktime(last_checkin.timetuple())
+            else:
+                last_checkin = ""
+
+            # Create context and render page            
+            context = {'id': gen_obj.gen_objective_id, 'objective': gen_obj.objective_name, 'last_checkin': last_checkin}
             gen_checkin_page = jinja_environment.get_template("pages/gen-checkin.html")
             self.response.out.write(gen_checkin_page.render(context))
 
@@ -230,7 +251,7 @@ class CheckinPage(webapp2.RequestHandler):
 # Carries out the action of incrementing the current user's combatant's progress in this objective
 class CheckinAction(webapp2.RequestHandler):
     def post(self, short_name):
-        obj_id = self.request.get('objective_id')
+        obj_id = int(self.request.get('objective_id'))
         combatant = fetch_current_combatant(short_name)
         update_progress(obj_id, combatant.combatant_id)
 
@@ -374,7 +395,6 @@ def update_challenge(short_name, args_obj):
         GeneralObjective(objective_name = str(args_obj["objective-name"]), contract_id = contract.contract_id, gen_objective_id = new_id).put()
 
     elif contract.objective_type == "location":
-        logging.info("location")
         # Get current highest GeolocationObjective id
         top_objective = GeolocationObjective.query().order(-GeolocationObjective.geo_objective_id).get()
         if top_objective:
@@ -383,7 +403,7 @@ def update_challenge(short_name, args_obj):
             new_id = 1
 
         # Make new GeolocationObjective model
-        GeolocationObjective(checkin_loc = ndb.GeoPt(args_obj["checkin-loc"]), checkin_radius = args_obj["radius"], loc_name = args_obj["checkin-loc-name"], geo_objective_id = new_id, contract_id = contract.contract_id).put()
+        GeolocationObjective(checkin_loc = ndb.GeoPt(args_obj["checkin-loc"]), checkin_radius = int(args_obj["radius"]), loc_name = args_obj["checkin-loc-name"], geo_objective_id = new_id, contract_id = contract.contract_id).put()
 
 
 def create_or_fetch_user(username):
@@ -480,13 +500,30 @@ def fetch_current_combatant(short_name):
                 return combatant
 
 
+# Updates an existing progress object or creates a new one if none exists
 def update_progress(obj_id, com_id):
     # Find that progress entry
     progress = GeneralProgress.query(GeneralProgress.objective_id == obj_id, GeneralProgress.combatant_id == com_id).get()
-    # Increment its checkin_count, set current time, and put it back
-    progress.checkin_count += 1
-    progress.last_checkin = datetime.date.today()
-    progress.put()
+
+    if progress:
+        # Increment its checkin_count, set current time, and put it back
+        progress.checkin_count += 1
+        progress.last_checkin = datetime.datetime.now()
+        progress.put()
+    else:
+        new_progress = GeneralProgress(objective_id = obj_id, combatant_id = com_id, checkin_count = 1, last_checkin = datetime.datetime.now()).put()
+
+
+# Given a combatant and objective, find the last time they checked in to that objective
+def last_checkin_date(obj_id, com_id):
+    # Find the progress entry if any
+    progress = GeneralProgress.query(GeneralProgress.objective_id == obj_id, GeneralProgress.combatant_id == com_id).get()
+
+    if progress:
+        return progress.last_checkin
+
+    else:
+        return None
 
 
 def add_desired_user(short_name, email):

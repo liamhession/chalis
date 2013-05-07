@@ -35,16 +35,15 @@
 
 		
 		<div class="container">
-		<h1> Check in to <strong> {{ placename }} </strong> </h1>
+		<h1> Check in to <strong>{{ placename }}</strong></h1>
 		<div class="row">
 			<div class="span4">
-				<p>If you are at the {{ placename }} click that Check in button below</p>
-				<button class="btn btn-block"  id="gen-checkin">Check in</button>
+				<p>If you are at <strong>{{ placename }}</strong> click to check in!</p>
+				<button class="btn btn-block"  id="geo-checkin">Check in</button>
 			</div>
 			<div class= "span4 offset1">
 				<div id="map-canvas"></div>
 				<div id="geo-panel">
-                    {{ location }}
 					Lat: <span id="lat">Loading geoinfo...</span><br>
 					Lon: <span id="lng">Loading geoinfo...</span>
 				</div>
@@ -52,17 +51,10 @@
 		</div>
 		
 		<!-- You can get the id for the ajax stuff from these hidden div -->
-		<div id="geo-id">
-			{{ id }}
-			</div>
-		<div id="location">
-			{{ location }}
-			</div>
-			
-		<div id="radius">
-			{{ radius }}
-			</div>		
-
+        <div id="last-checkin">{{ last_checkin }}</div>
+		<div id="geo-id">{{ id }}</div>
+		<div id="location">{{ location }}</div>	
+		<div id="radius">{{ radius }}</div>		
 			
 		</div>
 		 

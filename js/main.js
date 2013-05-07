@@ -28,7 +28,7 @@ $(document).ready(function(){
         }   
     });
 
-    // click handler for the "Save Changes" button
+    // Click handler for the "Save Changes" button
     // TODO: I am now passing 'prize' as a string array. Haven't implement tabbed text area yet.
     $('#challenge-updated').click(function(evt){
         evt.preventDefault();
@@ -50,7 +50,6 @@ $(document).ready(function(){
             data['checkin-loc-name'] = "Cravings";
         }
 
-
         $.ajax({
             url: 'edit',
             type: 'POST',
@@ -58,6 +57,29 @@ $(document).ready(function(){
         });
     });
 
+
+    //////////////// Checkin page ///////////////////////
+    // On the attempt to submit a check-in on a geolocation challenge page,
+    //  the proximity to the location is checked, as well as last checkin time
+    $('#geo-checkin').click(function(){
+        var canCheckin = true;
+        // Check that they didn't check in at this location fewer than 2 hrs ago
+        if ($('#last-checkin').html() != "") {
+            // Get time-stamp of the current moment to compare to last checkin
+        }
+
+        // Check that they are actually within the correct radius of the location
+
+        // Send ajax post to the do-checkin page
+        $.ajax({
+            url: 'do-checkin',
+            type: 'POST',
+            data: {'objective_id': $('#geo-id').html()},
+            success: function() { $('#geo-checkin').html("You checked in!"); }
+        });
+    });
+
+    //////////////// Invite page ///////////////////////
     // click handler for the submit button on challengers.html
     $('#add-invitee').click(function(evt){
         evt.preventDefault();
@@ -71,6 +93,8 @@ $(document).ready(function(){
         $('#invitee-email').val("");
     });
 
+
+    //////////////// Join page ///////////////////////
     // click handler for the submit button on reddit-join.html
     $('#reddit-submit').click(function(evt){
         evt.preventDefault();
