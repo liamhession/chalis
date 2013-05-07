@@ -17,15 +17,22 @@ $(document).ready(function(){
     // When the challenge type changes, either make the objective name field dis- or appear
     $('#dk_container_objective .dk_options_inner a').click(function() { 
         var objectiveType = $(this).html();
+
+        // Unhide the objective action box if the objective is now highest occurrence type
         if (objectiveType == "Highest Occurrence") {
-            $('#objective-type-block').after('<div class="span3 offset2" id="objective-name-block"> \
-                Objective Name \
-                <input type="text" id="objective-name" placeholder="Action that comprises checkin"> \
-                </div>');
+            $('#objective-name-block').removeClass('hidden');
+            $('#geo-objective-details').addClass('hidden');
         }
-        else {
-            $('#objective-name-block').remove();
+        // Unhide and hide appropriately for change to geolocation objective
+        else if (objectiveType == "Location Visits") {
+            $('#geo-objective-details').removeClass('hidden');
+            $('#objective-name-block').addClass('hidden');
         }   
+        // Hide both extra infos if not selecting either of above objective types
+        else {
+            $('#geo-objective-details').addClass('hidden');
+            $('#objective-name-block').addClass('hidden');
+        }
     });
 
 
@@ -72,6 +79,7 @@ $(document).ready(function(){
             data['objective-name'] = $('#objective-name').val();
         }
         else if ($('#objective').val() == "location") {
+            // Grab data from #geo-objective-details
             data['checkin-loc'] = "23.44, -21.04";
             data['radius'] = 200;
             data['checkin-loc-name'] = "Cravings";

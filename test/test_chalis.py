@@ -118,8 +118,8 @@ class FetchChallengeInfoTest(unittest.TestCase):
 
         stakes_info = chalis.fetch_stakes_info([1,2])
 
-        self.assertEqual("Gets free lunch", stakes_info[0]['first'])
-        self.assertEqual("Buys lunch", stakes_info[1]['last'])
+        self.assertEqual("Gets free lunch", stakes_info['first'])
+        self.assertEqual("Buys lunch", stakes_info['last'])
         
 
 class InviteTest(unittest.TestCase):
@@ -190,9 +190,43 @@ class StatusPageTests(unittest.TestCase):
         com_counts = chalis.fetch_combatant_counts(1, "location", [com1, com2])
         
         # 1 should have 3, 2 should have 4
-        self.assertTrue({'name': "1", 'count': 3} in com_counts)
-        self.assertTrue({'name': "2", 'count': 4} in com_counts)
+        self.assertTrue({'name': "1", 'count': 3, 'com_id': 1, 'position': None} in com_counts)
+        self.assertTrue({'name': "2", 'count': 4, 'com_id': 2, 'position': None} in com_counts)
 
+
+class CheckinPageTests(unittest.TestCase):
+    def setUp(self):
+        logging.info('In CheckinPage setUp()')
+
+    def test_update_positions(self):
+        # Add a contract with three users, each having checked some times
+        models.Contract(contract_id=1, short_name="test", objective_type="location").put()
+        models.GeolocationObjective(geo_objective_id=1, contract_id=1).put()
+        models.User(user_id=1, google_username="test1").put()
+        models.User(user_id=2, google_username="test2").put()
+        models.User(user_id=3, google_username="test3").put()
+        com1 = models.Combatant(combatant_id=1, name="1").put()
+        com2 = models.Combatant(combatant_id=2, name="2").put()
+        com3 = models.Combatant(combatant_id=3, name="3").put()
+        models.CombatantUser(combatant_id=1, user_id=1).put()
+        models.CombatantUser(combatant_id=2, user_id=2).put()
+        models.CombatantUser(combatant_id=3, user_id=3).put()
+        con_com1 = models.ContractCombatant(contract_id=1, combatant_id=1)
+        con_com2 = models.ContractCombatant(contract_id=1, combatant_id=2)
+        con_com3 = models.ContractCombatant(contract_id=1, combatant_id=3)
+        con_com1.put()
+        con_com2.put()
+        con_com3.put()
+        models.GeneralProgress(objective_id=1, combatant_id=1, checkin_count=3).put()
+        models.GeneralProgress(objective_id=1, combatant_id=2, checkin_count=4).put()
+        models.GeneralProgress(objective_id=1, combatant_id=3).put()
+        
+        # com_id is 0 because there is no combatant whose most recent checkin won't be in db
+        chalis.update_positions(1, "test", 0)
+
+        self.assertEqual(1, con_com2.position)
+        self.assertEqual(2, con_com1.position)
+        self.assertEqual(3, con_com3.position)
 
 class RandomTests(unittest.TestCase):
     def setUp(self):

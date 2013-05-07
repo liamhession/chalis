@@ -4,7 +4,7 @@
         type="text/javascript"></script>
 <head>
     <meta charset="utf-8">
-    <title>Reddit Join</title>
+    <title>{{ username }}'s Challenges</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Loading CSS -->
@@ -33,48 +33,15 @@
 		</div>
 	</div>
 
-		
-		<div class="container">
-		<h1> Join a Chalis Challenge </h1>
-		<div class="row">
-			<div class="span4">
-				<p>You have been invited by {{ inviter }} to partipate in a Chalis Reddit Karma Challenge!</p>
-				<p>Your task is to aggregate the most comment and link Karma on Reddit.com over the time period specified.</p>
 
-				<p>The prizes and punishments are:</p>
-				{% for each prize in prizes %}
-					<p> {{ prize }} </p>
-				
-				<h2>Enter your Reddit Username:</h2>
-				<div class = "span4">
-					<form action="/new" method: "post">
-						<input type="text" class="span4" name="reddit-user" id="reddit-user" >
-						<button class="btn btn-block" type="submit" id="reddit-submit" >Join</button>
-					</form>
-				</div>	
-				
-			</div>
-			<div class= "span4 offset1">
-				<img src="images/reddit-alien.png" alt="Snoo">
-			</div>
-		</div>
-		 
-		</div>
-		 
-		 
-	
-
-
-
-
+	 <div class="container">
+		 <h1 id="main-title">Challenges {{ username }} is in:</h1>
+		 <hr>
+         {% for challenge in challenges %}
+         <div class="challenge"><a href="{{ challenge.link }}">{{ challenge.challenge_name }}</a> --- as {{ challenge.com_name }}, position {{ challenge.position }}</div>
+         {% endfor %}
+    </div>
      
-
-
-
-
-
-
-
 
 
 
@@ -94,3 +61,5 @@
 
 </body>
 </html>
+
+

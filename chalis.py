@@ -90,6 +90,46 @@ class CreateChallenge(webapp2.RequestHandler):
         self.redirect('/'+short_name+'/details?new=1')
 
 
+# Renders details page where a challenge's info is seen and can be edited 
+class ChallengePage(webapp2.RequestHandler):
+    def get(self, short_name):
+        new_challenge = self.request.get("new")
+        
+        should_be_here = check_user_auth(short_name)
+        if not should_be_here and not new_challenge:
+            self.redirect('/')  #TODO: just have them see w/o editing
+
+        name = obj_type = length = unit = start = con_id = stakes_ids = stakes_info = checkin = None
+        # Get the relevant model's info
+        if not new_challenge:
+            name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
+        
+            # Get stakes objects
+            stakes_info = fetch_stakes_info(stakes_ids)
+
+            # Get checkin action string
+            if obj_type == "highest-occurrence":
+                objective = GeneralObjective.query(GeneralObjective.contract_id == con_id).get()
+                if objective:
+                    checkin = objective.objective_name
+
+        # New challenges are by default highest-occurrence and start today
+        else:
+            obj_type = "highest-occurrence"
+            start = datetime.date.today()
+
+        # Convert start's DateProperty format to something usable in template if it is set
+        if start:
+            start = {'month': start.month, 'day': start.day, 'year': start.year}
+
+        # Create context for page
+        context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
+
+        # Render the page in context and display it
+        challenge_page = jinja_environment.get_template("pages/details.html")
+        self.response.out.write(challenge_page.render(context))
+
+
 # Doesn't render a page, just where info is sent when any parameter is changed on the ChallengePage
 class EditChallenge(webapp2.RequestHandler):
     def post(self, short_name):
@@ -105,34 +145,6 @@ class EditChallenge(webapp2.RequestHandler):
         args_object["stakes"] = stakes
 
         update_challenge(short_name, args_object)
-
-
-# Renders details page where a challenge's info is seen and can be edited 
-class ChallengePage(webapp2.RequestHandler):
-    def get(self, short_name):
-        new_challenge = self.request.get("new")
-        
-        should_be_here = check_user_auth(short_name)
-        if not should_be_here and not new_challenge:
-            self.redirect('/')  #TODO: just have them see w/o editing
-
-        name = obj_type = length = unit = start = con_id = stakes_ids = stakes_info = None
-        # Get the relevant model's info
-        if not new_challenge:
-            name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
-        
-            # Get stakes objects
-            stakes_info = fetch_stakes_info(stakes_ids)
-
-        # Convert start's DateProperty format to something usable in template if it is set
-        if start:
-            start = {'month': start.month, 'day': start.day, 'year': start.year}
-
-        context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info}
-
-        # Render the page in context and display it
-        challenge_page = jinja_environment.get_template("pages/details.html")
-        self.response.out.write(challenge_page.render(context))
 
 
 # Renders invite page where a user adds other people to the challenge
@@ -259,7 +271,9 @@ class CheckinAction(webapp2.RequestHandler):
         obj_id = int(self.request.get('objective_id'))
         combatant = fetch_current_combatant(short_name)
         update_progress(obj_id, combatant.combatant_id)
-        update_positions(obj_id, short_name)
+
+        # Update all their positions so when we ask later they'll all be up to date        
+        update_positions(obj_id, short_name, combatant.combatant_id)
 
 
 # Renders some kind of infographic about the current state of the challenge
@@ -267,7 +281,7 @@ class StatusPage(webapp2.RequestHandler):
     def get(self, short_name):
         # Grab the contract info, and combatants involved
         name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
-        combatants = fetch_combatants_info(con_id)
+        combatants = fetch_combatants_info(con_id) 
 
         # Get each combatant's checkin count and add that info to the combatant object
         template_coms = fetch_combatant_counts(con_id, obj_type, combatants)
@@ -284,8 +298,57 @@ class StatusPage(webapp2.RequestHandler):
         self.response.out.write(status_page.render(context))
 
 
+# Renders the current user's user page so they can see all the challenges they're currently in
+class UserPage(webapp2.RequestHandler):
+    def get(self):
+        # Grab a list of challenges current user's in plus combatant name
+        challenges, username = fetch_current_challenges_list()
+
+        context = {'challenges': challenges, 'username': username}
+        user_page = jinja_environment.get_template("pages/user.html")
+        self.response.out.write(user_page.render(context))
+
 
 ############### Unit-testable Functions Used By Handlers ##############
+def fetch_current_challenges_list():
+    user = users.get_current_user()
+    if not user:
+        self.redirect('/')
+    username = grab_username(user.email())
+    user_data = User.query(User.google_username == username).get()
+    if not user_data:
+        return []
+    
+    # Get all CombatantUser objects for this user
+    com_users = CombatantUser.query(CombatantUser.user_id == user_data.user_id).fetch(20)
+
+    # Get all ContractCombatant objects for this user
+    con_coms = []
+    for com_user in com_users:
+        con_coms += ContractCombatant.query(ContractCombatant.combatant_id == com_user.combatant_id).fetch(20)
+    
+    # Create array containing challenge names, links, combatant name in that challenge, and position
+    challenges = []
+    for con_com in con_coms:
+        con = Contract.query(Contract.contract_id == con_com.contract_id).get()
+        challenge_name = con.challenge_name
+
+        # Link to details page if competition is in future
+        if con.start_date > datetime.date.today():
+            link = '/'+con.short_name+'/details'
+        # Otherwise link to status page
+        else:
+            link = '/'+con.short_name+'/status'
+
+        com_name = Combatant.query(Combatant.combatant_id == con_com.combatant_id).get().name
+
+        position = con_com.position
+
+        challenges.append({'challenge_name': challenge_name, 'link': link, 'com_name': com_name, 'position': position})
+
+    return challenges, username
+
+
 def fetch_combatant_counts(con_id, obj_type, combatants):
     # Get objective_id in order to later get progress info
     if obj_type == 'location':
@@ -296,10 +359,16 @@ def fetch_combatant_counts(con_id, obj_type, combatants):
     template_coms = []
     for com in combatants:
         curr_id = com.combatant_id
-        count = GeneralProgress.query(GeneralProgress.objective_id == obj_id, GeneralProgress.combatant_id == curr_id).get().checkin_count
+        #Default count of 0
+        count = 0
+        progress = GeneralProgress.query(GeneralProgress.objective_id == obj_id, GeneralProgress.combatant_id == curr_id).get()
+        if progress:
+            count = progress.checkin_count
         curr_com = {}
         curr_com["name"] = com.name
         curr_com["count"] = count
+        curr_com["com_id"] = com.combatant_id
+        curr_com["position"] = ContractCombatant.query(ContractCombatant.contract_id == con_id, ContractCombatant.combatant_id == com.combatant_id).get().position
         template_coms.append(curr_com)
     return template_coms
 
@@ -633,22 +702,40 @@ def update_progress(obj_id, com_id):
         new_progress = GeneralProgress(objective_id = obj_id, combatant_id = com_id, checkin_count = 1, last_checkin = datetime.datetime.now()).put()
 
 
-def update_positions(obj_id, short_name):
+# Need to know most recently checked-in combatant's com_id because it won't be reflected in db yet
+def update_positions(obj_id, short_name, com_id):
     name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
 
     combatants = fetch_combatants_info(con_id)
 
     com_counts = fetch_combatant_counts(con_id, obj_type, combatants)
 
+    # Make it reflect that com_id's count is one higher than com_counts says
+    for com_count in com_counts:
+        if com_count['com_id'] == com_id:
+            com_count['count'] += 1
+
     # Sort the com_counts objects in terms of decreasing count
     com_counts.sort(key=lambda x: x['count'], reverse=True)
 
+    # Set the position of each combatant in their ContractCombatant model
     position = 1
     for com_count in com_counts:
-        for com in combatants:
-            if com.name == com_count['name']
-    
+        con_com = ContractCombatant.query(ContractCombatant.contract_id == con_id, ContractCombatant.combatant_id == com_count['com_id']).get()
+        con_com.position = position
+        con_com.put()
+        position += 1
 
+
+def fetch_current_position(short_name):
+    # Get the current combatant's info if they're logged in
+    com = fetch_current_combatant(short_name)
+    # Get contract info for con_id
+    name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
+
+    con_com = ContractCombatant.query(ContractCombatant.contract_id == con_id, ContractCombatant.combatant_id == com.combatant_id).get()
+    return con_com.position
+    
 
 # Given a combatant and objective, find the last time they checked in to that objective
 def last_checkin_date(obj_id, com_id):
@@ -695,4 +782,4 @@ Just go to this link, log in with this email, and join the competition!
 
 
 
-app = webapp2.WSGIApplication([('/', HomePage), ('/new', CreateChallenge), ('/(.*)/edit', EditChallenge), ('/(.*)/details', ChallengePage), ('/(.*)/invite', InvitePage), ('/(.*)/send-invite', SendInvite), ('/(.*)/join', JoinPage), ('/(.*)/status', StatusPage), ('/(.*)/checkin', CheckinPage), ('/(.*)/do-checkin', CheckinAction)], debug=True)
+app = webapp2.WSGIApplication([('/', HomePage), ('/new', CreateChallenge), ('/(.*)/edit', EditChallenge), ('/(.*)/details', ChallengePage), ('/(.*)/invite', InvitePage), ('/(.*)/send-invite', SendInvite), ('/(.*)/join', JoinPage), ('/(.*)/status', StatusPage), ('/(.*)/checkin', CheckinPage), ('/(.*)/do-checkin', CheckinAction), ('/user', UserPage)], debug=True)

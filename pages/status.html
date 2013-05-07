@@ -4,7 +4,7 @@
         type="text/javascript"></script>
 <head>
     <meta charset="utf-8">
-    <title>Reddit Join</title>
+    <title>Status of your Chalis challenge</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Loading CSS -->
@@ -33,48 +33,18 @@
 		</div>
 	</div>
 
-		
-		<div class="container">
-		<h1> Join a Chalis Challenge </h1>
-		<div class="row">
-			<div class="span4">
-				<p>You have been invited by {{ inviter }} to partipate in a Chalis Reddit Karma Challenge!</p>
-				<p>Your task is to aggregate the most comment and link Karma on Reddit.com over the time period specified.</p>
 
-				<p>The prizes and punishments are:</p>
-				{% for each prize in prizes %}
-					<p> {{ prize }} </p>
-				
-				<h2>Enter your Reddit Username:</h2>
-				<div class = "span4">
-					<form action="/new" method: "post">
-						<input type="text" class="span4" name="reddit-user" id="reddit-user" >
-						<button class="btn btn-block" type="submit" id="reddit-submit" >Join</button>
-					</form>
-				</div>	
-				
-			</div>
-			<div class= "span4 offset1">
-				<img src="images/reddit-alien.png" alt="Snoo">
-			</div>
-		</div>
-		 
-		</div>
-		 
-		 
-	
-
-
-
-
+	 <div class="container">
+		 <h1 id="main-title">{{ name }}</h1>
+		 <hr>
+         <div id="duration">Start: {{ start.month }}/{{ start.day }}</div>
+         <div class="offset1 span{{ spans_complete }}" id="progress-bar"></div><div class="span{{ 10-spans_complete }}" id="remaining-bar"></div>
+         <hr>
+         {% for combatant in combatants %}
+         <div class="combatant">{{ combatant.position }}. {{ combatant.name }} ---- Checkin count: {{ combatant.count }}</div>
+         {% endfor %}
+    </div>
      
-
-
-
-
-
-
-
 
 
 
@@ -94,3 +64,4 @@
 
 </body>
 </html>
+

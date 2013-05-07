@@ -25,7 +25,7 @@
 			<div class = "container">
 				<ul class = "nav">
 					<li class="active"> <a class="brand" href="/">Chalis</a> </li>
-					<li><a href="/">Home</a></li>
+					<li><a href="/user">User</a></li>
 					
 					
 				</ul>
@@ -35,7 +35,7 @@
 
 		<button class="btn btn-large btn-primary offset10" type="button" id="challenge-updated">Save Changes</button>
 		<div class="container">
-		 <h1>Challenge Overview</h1> <hr>
+		 <h1>"{{ description }}" Challenge</h1> <hr>
 		 
 		 <div class="row">
 				<div class="span3"><h2>Objective:</h2></div>
@@ -48,16 +48,16 @@
 					</select>
 				</div>
 
-                {% if objective == 'highest-occurrence' %}
-                <div class="span3 offset2" id="objective-name-block">
+                
+                <div class="span3 offset2{% if objective != 'highest-occurrence' %} hidden{% endif %}" id="objective-name-block">
                 Objective Name
-                <input type="text" id="objective-name" placeholder="Action that comprises checkin" />
+                <input type="text" id="objective-name" placeholder="Action that comprises checkin" value="{{ checkin_action }}"/>
                 </div>
-                {% endif %}
 
-                {% if objective == 'location' %}
-                <div>Geo selector</div>
-                {% endif %}
+                
+                <div class="span3 offset2{% if objective != 'location' %} hidden{% endif %}" id="geo-objective-details">
+                Geo selector
+                </div>
 		 </div>
 		 <hr>
 		 <div class="row">

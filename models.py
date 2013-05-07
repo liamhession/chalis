@@ -36,14 +36,13 @@ class ContractCombatant(ndb.Model):
 class GeneralProgress(ndb.Model):
     objective_id = ndb.IntegerProperty()
     combatant_id = ndb.IntegerProperty()
-    checkin_count = ndb.IntegerProperty()
+    checkin_count = ndb.IntegerProperty(default=0)
     last_checkin = ndb.DateTimeProperty()
 
 class Combatant(ndb.Model):
     combatant_id = ndb.IntegerProperty()
     name = ndb.StringProperty()
     challenges_won = ndb.IntegerProperty(default=0)
-#    is_in_a_challenge = ndb.BooleanProperty(default=False)
 
 class CombatantUser(ndb.Model):
     combatant_id = ndb.IntegerProperty()
