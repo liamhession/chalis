@@ -81,12 +81,45 @@ $(document).ready(function(){
 
         // Check that they are actually within the correct radius of the location
 
+
+        // If they can't check in at this point, notify them they're not in the radius
+        if (!canCheckin) {
+            $('#geo-checkin').html("You are not within range");
+            return;
+        }
+
         // Send ajax post to the do-checkin page
         $.ajax({
             url: 'do-checkin',
             type: 'POST',
             data: {'objective_id': $('#geo-id').html()},
             success: function() { $('#geo-checkin').html("You checked in!"); }
+        });
+    });
+
+    // General objective checkin page just limits repeated checkins less than 1 min apart
+    $('#gen-checkin').click(function() {
+        var canCheckin = true;
+        var lastCheckinTimestamp = $('#last-checkin').html();
+        if (lastCheckinTimestamp != "") {
+            // Get time-stamp of the current moment, GMT to compare to last checkin
+            var currTimestamp = Math.floor((new Date()).getTime() / 1000);
+            var secsIn1Min = 60;
+            canCheckin = (currTimestamp - lastCheckinTimestamp) > secsIn1Min;
+        }
+
+        // If they can't check in at this point notify them they're trying too often        
+        if (!canCheckin) {
+            $('#gen-checkin').html("Wait a minute to check in");
+            return;
+        }
+
+        // Send ajax post to the do-checkin page
+        $.ajax({
+            url: 'do-checkin',
+            type: 'POST',
+            data: {'objective_id': $('#gen-id').html()},
+            success: function() { $('#gen-checkin').html("You checked in!"); }
         });
     });
 
