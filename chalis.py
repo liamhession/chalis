@@ -95,9 +95,14 @@ class EditChallenge(webapp2.RequestHandler):
     def post(self, short_name):
         # Arguments object will contain any fields that are changing, along with their new values
         args_object = {}
-        args_sent = self.request.arguments()  
+        args_sent = self.request.arguments() 
+        stakes = ["","","",""] 
         for arg in args_sent:
-            args_object[arg] = self.request.get(arg)
+            if arg[:-1] == 'stakes':
+                stakes[int(arg[-1:])-1] = self.request.get(arg)
+            else:
+                args_object[arg] = self.request.get(arg)
+        args_object["stakes"] = stakes
 
         update_challenge(short_name, args_object)
 
@@ -254,6 +259,7 @@ class CheckinAction(webapp2.RequestHandler):
         obj_id = int(self.request.get('objective_id'))
         combatant = fetch_current_combatant(short_name)
         update_progress(obj_id, combatant.combatant_id)
+        update_positions(obj_id, short_name)
 
 
 # Renders some kind of infographic about the current state of the challenge
@@ -392,11 +398,11 @@ def fetch_stakes_info(stakes_ids):
         return []
 
     # Get all stakes objects, then create an array of dictionaries
-    stakes = Stakes.query(Stakes.stakes_id.IN(stakes_ids)).fetch(20)
+    stakes = Stakes.query(Stakes.stakes_id.IN(stakes_ids)).fetch(4)
 
-    stakes_info = []
+    stakes_info = {}
     for stake in stakes:
-        stakes_info.append({stake.position:stake.stakes_desc})
+        stakes_info[stake.position] = stake.stakes_desc
 
     return stakes_info
    
@@ -429,6 +435,12 @@ def update_challenge(short_name, args_obj):
     contract.time_unit = str(args_obj["unit"])
     contract.time_period = int(args_obj["length"])
     contract.start_date = datetime.date(int(args_obj["year"]), int(args_obj["month"]), int(args_obj["day"]))
+    if not contract.stakes_id:
+        curr_stakes = [0,0,0,0]
+    else:
+        curr_stakes = contract.stakes_id
+    stakes_ids = enter_stakes(args_obj["stakes"], curr_stakes)
+    contract.stakes_id = stakes_ids
     
     contract.put()
     
@@ -454,6 +466,63 @@ def update_challenge(short_name, args_obj):
 
         # Make new GeolocationObjective model
         GeolocationObjective(checkin_loc = ndb.GeoPt(args_obj["checkin-loc"]), checkin_radius = int(args_obj["radius"]), loc_name = args_obj["checkin-loc-name"], geo_objective_id = new_id, contract_id = contract.contract_id).put()
+
+
+def enter_stakes(stakes_descs, existing_ids):
+    stakes_id = get_new_stakes_id()    
+
+    # Put any first place description in db and get its stakes_id in array
+    if existing_ids[0] == 0 and stakes_descs[0] != "":
+        Stakes(stakes_id = stakes_id, position = "first", stakes_desc = stakes_descs[0]).put()
+        existing_ids[0] = stakes_id
+        stakes_id += 1
+    # If one exists and the new one is different, replace the text
+    elif existing_ids[0] != 0:
+        first_stake = Stakes.query(Stakes.stakes_id == existing_ids[0]).get()
+        if first_stake.stakes_desc != stakes_descs[0]:
+            first_stake.stakes_desc = stakes_descs[0]
+
+    # Second place
+    if existing_ids[1] == 0 and stakes_descs[1] != "":
+        Stakes(stakes_id = stakes_id, position = "second", stakes_desc = stakes_descs[1]).put()
+        existing_ids[1] = stakes_id
+        stakes_id += 1
+    elif existing_ids[1] != 0:
+        sec_stake = Stakes.query(Stakes.stakes_id == existing_ids[1]).get()
+        if sec_stake.stakes_desc != stakes_descs[1]:
+            sec_stake.stakes_desc = stakes_descs[1]
+
+
+    # Second to last place
+    if existing_ids[2] == 0 and stakes_descs[2] != "":
+        Stakes(stakes_id = stakes_id, position = "second to last", stakes_desc = stakes_descs[2]).put()
+        existing_ids[2] = stakes_id
+        stakes_id += 1
+    elif existing_ids[2] != 0:
+        sec_last_stake = Stakes.query(Stakes.stakes_id == existing_ids[2]).get()
+        if sec_last_stake.stakes_desc != stakes_descs[2]:
+            sec_last_stake.stakes_desc = stakes_descs[2]
+
+
+    # Last place
+    if existing_ids[3] == 0 and stakes_descs[3] != "":
+        Stakes(stakes_id = stakes_id, position = "last", stakes_desc = stakes_descs[3]).put()
+        existing_ids[3] = stakes_id
+        stakes_id += 1
+    elif existing_ids[3] != 0:
+        last_stake = Stakes.query(Stakes.stakes_id == existing_ids[3]).get()
+        if last_stake.stakes_desc != stakes_descs[3]:
+            last_stake.stakes_desc = stakes_descs[3]
+
+    return existing_ids
+
+
+def get_new_stakes_id():
+    top_stake = Stakes.query().order(-Stakes.stakes_id).get()
+    if top_stake:
+        return top_stake.stakes_id + 1
+    else:
+        return 1
 
 
 def create_or_fetch_user(username):
@@ -562,6 +631,23 @@ def update_progress(obj_id, com_id):
         progress.put()
     else:
         new_progress = GeneralProgress(objective_id = obj_id, combatant_id = com_id, checkin_count = 1, last_checkin = datetime.datetime.now()).put()
+
+
+def update_positions(obj_id, short_name):
+    name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
+
+    combatants = fetch_combatants_info(con_id)
+
+    com_counts = fetch_combatant_counts(con_id, obj_type, combatants)
+
+    # Sort the com_counts objects in terms of decreasing count
+    com_counts.sort(key=lambda x: x['count'], reverse=True)
+
+    position = 1
+    for com_count in com_counts:
+        for com in combatants:
+            if com.name == com_count['name']
+    
 
 
 # Given a combatant and objective, find the last time they checked in to that objective

@@ -28,6 +28,29 @@ $(document).ready(function(){
         }   
     });
 
+
+    // When the prize/punishment slot changes, change which description box shows
+    $('#dk_container_place-selector .dk_options_inner a').click(function() {
+        var place = $(this).html();
+        var placeId = '#first-desc';
+        if (place == "Second") {
+            placeId = '#second-desc';
+        }
+        else if (place == "Second to Last") {
+            placeId = '#second-to-last-desc';
+        }
+        else if (place == "Last") {
+            placeId = '#last-desc';
+        }
+
+        // Remove hidden class from corresponding box's parent
+        var parentDiv = $(placeId).parent();
+        parentDiv.removeClass('hidden');
+
+        // Hide all that parent's siblings
+        parentDiv.siblings().addClass('hidden');        
+    });
+
     // Click handler for the "Save Changes" button
     // TODO: I am now passing 'prize' as a string array. Haven't implement tabbed text area yet.
     $('#challenge-updated').click(function(evt){
@@ -39,7 +62,11 @@ $(document).ready(function(){
                    'length': $('#time-length').val(),
                    'year': $('#year').val(),
                    'month': $('#month').val(),
-                   'day': $('#day').val()
+                   'day': $('#day').val(),
+                   'stakes1': $('#first-desc').val(),
+                   'stakes2': $('#second-desc').val(),
+                   'stakes3': $('#second-to-last-desc').val(),
+                   'stakes4': $('#last-desc').val()               
                    };                
         if ($('#objective').val() == "highest-occurrence") {
             data['objective-name'] = $('#objective-name').val();

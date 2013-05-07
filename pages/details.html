@@ -99,7 +99,7 @@
 				<div class="span3"><h2>Prizes/Punishment:</h2></div>
 				<div class="span3 offset1">
 					Place
-					<select class="span3" name="prize-type">
+					<select class="span3" name="prize-type" id="place-selector">
 						<option value="first-place">First</option>
 						<option value="second-place">Second</option>
 						<option value="second-last">Second to Last</option>
@@ -110,21 +110,21 @@
 		
 		<!-- TODO: make this "tabbed panel", show only the text area being selected in the box above -->
 		<div class="row">
-				<div class="span3 offset4 prize-desc active">
-					Description (First):
-					<textarea rows="3" id="first-desc"></textarea>
-				</div>
 				<div class="span3 offset4 prize-desc">
-					Description (Second):
-					<textarea rows="3" id="second-desc"></textarea>
+                Stakes description 1:                
+					<textarea rows="3" id="first-desc">{{ stakes["first"] }}</textarea>
 				</div>
-				<div class="span3 offset4 prize-desc">
-					Description (Second to Last):
-					<textarea rows="3" id="snd2last-desc"></textarea>
+				<div class="span3 offset4 prize-desc hidden">
+                Stakes description 2:                                
+					<textarea rows="3" id="second-desc">{{ stakes["second"] }}</textarea>
 				</div>
-				<div class="span3 offset4 prize-desc">
-					Description (Last):
-					<textarea rows="3" id="last-desc"></textarea>
+				<div class="span3 offset4 prize-desc hidden">
+                Stakes description 3:                                
+					<textarea rows="3" id="second-to-last-desc">{{ stakes["second to last"] }}</textarea>
+				</div>
+				<div class="span3 offset4 prize-desc hidden">
+                Stakes description 4:                                
+					<textarea rows="3" id="last-desc">{{ stakes["last"] }}</textarea>
 				</div>
 		 </div>		
 		<hr>
