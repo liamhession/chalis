@@ -36,14 +36,13 @@ function loadMap(selectorMode) {
         // Try HTML5 geolocation
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
-                var pos = new google.maps.LatLng(position.coords.latitude,
-                                                                                 position.coords.longitude);
+                var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
-                var infowindow = new google.maps.InfoWindow({
-                    map: map,
-                    position: pos,
-                    content: 'Current position detected.'
-                });
+                // var infowindow = new google.maps.InfoWindow({
+                //     map: map,
+                //     position: pos,
+                //     content: 'Current position detected.'
+                // });
 
                 if (globalMarker) {
                     globalMarker.setMap(null);
