@@ -3,6 +3,19 @@
 
 $(document).ready(function(){
 
+    /******** Initializations ******/
+    
+    //////////////// Home page ///////////////////////
+    // Fill in default text when top chanllenges are not populated yet
+    $('.top-challenge td').each(function() {
+        if ($(this).html() === '') {
+            $(this).html('no chanllenge yet');
+        };
+    });
+
+
+    /*********** Handlers **********/
+
     //////////////// Home page ///////////////////////
     // Handle a click on any of the top-challenge list elements on the home page
     //  will create a new challenge with the given description and the current user in it
