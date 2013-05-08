@@ -40,6 +40,7 @@ $(document).ready(function(){
         else if (objectiveType == "Location Visits") {
             $('#geo-objective-details').removeClass('hidden');
             $('#objective-name-block').addClass('hidden');
+            loadMap(true);
         }   
         // Hide both extra infos if not selecting either of above objective types
         else {
