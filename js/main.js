@@ -4,7 +4,7 @@
 $(document).ready(function(){
 
     /******** Initializations ******/
-    
+
     //////////////// Home page ///////////////////////
     // Fill in default text when top chanllenges are not populated yet
     $('.top-challenge td').each(function() {
@@ -175,10 +175,22 @@ $(document).ready(function(){
     // click handler for the submit button on challengers.html
     $('#add-invitee').click(function(evt){
         evt.preventDefault();
+
+        // Return if user does not provide valid gmail account
+        var emailAddr = $('#invitee-email').val();
+        var lowerCased = emailAddr.toLowerCase();
+
+        if (!(/^([A-Za-z0-9_\-\.])+\@(gmail)\.(com)$/.test(lowerCased))) {
+            alert('Oops, invalid Gmail account.\n' +
+                'Accounts can only be like "example@gmail.com" at this time.');
+            return;
+        }
+
+        // Send invitation if account is valid
         $.ajax({
             url: 'send-invite',
             type: 'POST',
-            data: {'email': $('#invitee-email').val()}
+            data: {'email': emailAddr}
         });
 
         // Clear the email box
