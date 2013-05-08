@@ -21,6 +21,9 @@ handlers:
 - url: .*/fonts
   static_dir: fonts
 
+- url: /qunit
+  static_dir: test/qunit
+
 - url: /test.*
   script: gaeunit.py
 
