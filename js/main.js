@@ -137,6 +137,23 @@ $(document).ready(function(){
         }
 
         // Check that they are actually within the correct radius of the location
+        var radius = $('#radius').html();
+        var lat = $('#lat').html();
+        var lng = $('#lng').html();
+        if (lat === "Loading geoinfo..." || lng === "Loading geoinfo...") {
+            alert("Your location hasn't been detected yet.\nPlease checkin later.");
+            return;
+        }
+        var loc = $('#location').html().split(',', 2);
+        var locLat = loc[0];
+        var locLng = loc[1];
+        var locObj = new google.maps.LatLng(locLat, locLng);
+        var checkinObj = new google.maps.LatLng(lat, lng);
+        var distance = google.maps.geometry.spherical.computeDistanceBetween(locObj, checkinObj, 3956.6);
+        if (distance > radius) {
+            $('#geo-checkin').html("Sorry, you are not within the valid checkin range.");
+            return;
+        }
 
 
         // If they can't check in at this point, notify them they're not in the radius
