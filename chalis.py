@@ -123,7 +123,7 @@ class ChallengePage(webapp2.RequestHandler):
             start = {'month': start.month, 'day': start.day, 'year': start.year}
 
         # Create context for page
-        context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
+        context = {'description':short_name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
 
         # Render the page in context and display it
         challenge_page = jinja_environment.get_template("pages/details.html")
