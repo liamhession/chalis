@@ -23,7 +23,7 @@ What to expect
 
 * Unit tests for server-side code, 100% code coverage - /gaeunit.py
 
-* Unit tests for Javascript libraries (map.js) - /test/qunit/index.html
+* Unit tests for Javascript libraries (map.js) - /qunit/index.html
 
 * Selenium test cases (???)
 
