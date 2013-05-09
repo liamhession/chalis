@@ -61,11 +61,14 @@
 			<div class="span6 offset4">
 				<div id="map-canvas"></div>
 				<div id="geo-panel">
-					Lat: <span id="lat">Loading geoinfo...</span><br>
-					Lng: <span id="lng">Loading geoinfo...</span>
+					Location: <span id="loc">{% if objective == 'location' %}{{ location }}{% endif %}</span>
 				</div>
 				{% if objective == 'location' %}
-					<script type="text/javascript">loadMap(true);</script>
+					<script type="text/javascript">
+						var loc = '{{ location }}';
+						loc = loc.split(',', 2)
+						loadMap(false, loc);
+					</script>
 				{% endif %}
 			</div>
 		 </div>

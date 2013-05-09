@@ -127,6 +127,9 @@ class ChallengePage(webapp2.RequestHandler):
 
         # Render the page in context and display it
         if new_challenge == 0:
+            if obj_type == 'location':
+                geo_obj = GeolocationObjective.query(GeolocationObjective.contract_id == con_id).get()
+                context['location'] = str(geo_obj.checkin_loc)
             challenge_page = jinja_environment.get_template("pages/nonedit-details.html")
         else:
             challenge_page = jinja_environment.get_template("pages/details.html")
