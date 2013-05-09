@@ -34,17 +34,17 @@ $(document).ready(function(){
         // Unhide the objective action box if the objective is now highest occurrence type
         if (objectiveType == "Highest Occurrence") {
             $('#objective-name-block').removeClass('hidden');
-            $('#geo-objective-details').addClass('hidden');
+            $('.geo-objective-details').addClass('hidden');
         }
         // Unhide and hide appropriately for change to geolocation objective
         else if (objectiveType == "Location Visits") {
-            $('#geo-objective-details').removeClass('hidden');
+            $('.geo-objective-details').removeClass('hidden');
             $('#objective-name-block').addClass('hidden');
             loadMap(true);
         }   
         // Hide both extra infos if not selecting either of above objective types
         else {
-            $('#geo-objective-details').addClass('hidden');
+            $('.geo-objective-details').addClass('hidden');
             $('#objective-name-block').addClass('hidden');
         }
     });
@@ -93,10 +93,18 @@ $(document).ready(function(){
             data['objective-name'] = $('#objective-name').val();
         }
         else if ($('#objective').val() == "location") {
+            // Check if location info is ready
+            var lat = $('#lat').html();
+            var lng = $('#lng').html();
+            if (lat === "Loading geoinfo..." || lng === "Loading geoinfo...") {
+                alert("Please choose a location.");
+                return;
+            }
+
             // Grab data from #geo-objective-details
-            data['checkin-loc'] = "23.44, -21.04";
-            data['radius'] = 200;
-            data['checkin-loc-name'] = "Cravings";
+            data['checkin-loc'] = lat + ', ' + lng;
+            data['radius'] = $('#radius').val();
+            data['checkin-loc-name'] = $('#loc_name').val();
         }
 
         $.ajax({

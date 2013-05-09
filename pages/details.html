@@ -51,11 +51,19 @@
 			
 			<div class="span3 offset2{% if objective != 'highest-occurrence' %} hidden{% endif %}" id="objective-name-block">
 			Objective Name
-			<input type="text" id="objective-name" placeholder="Action that comprises checkin" value="{{ checkin_action }}"/>
+				<input type="text" id="objective-name" placeholder="Action that comprises checkin" value="{% if checkin_action %}{{ checkin_action }}{% endif %}"/>
+			</div>
+
+			<div class="span3 offset2{% if objective != 'location' %} hidden{% endif %} geo-objective-details">
+				Location Name
+				<input type="text" id="loc_name" placeholder="Name" value="{% if loc_name %}{{ loc_name }}{% else %}Cravings{% endif %}"/>
+				<br>
+				Radius in Miles
+				<input type="text" id="radius" placeholder="Radius" value="{% if radius %}{{ radius }}{% else %}10{% endif %}"/>
 			</div>
 		</div>
 				
-		<div class="row{% if objective != 'location' %} hidden{% endif %}" id="geo-objective-details">
+		<div class="row{% if objective != 'location' %} hidden{% endif %} geo-objective-details">
 			<hr>
 			<div class="span6 offset4">
 				<div id="map-canvas"></div>
