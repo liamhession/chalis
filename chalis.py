@@ -126,7 +126,10 @@ class ChallengePage(webapp2.RequestHandler):
         context = {'description':short_name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
 
         # Render the page in context and display it
-        challenge_page = jinja_environment.get_template("pages/details.html")
+        if not new_challenge:
+            challenge_page = jinja_environment.get_template("pages/nonedit-details.html")
+        else:
+            challenge_page = jinja_environment.get_template("pages/details.html")
         self.response.out.write(challenge_page.render(context))
 
 
