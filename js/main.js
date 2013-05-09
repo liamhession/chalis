@@ -73,7 +73,6 @@ $(document).ready(function(){
     });
 
     // Click handler for the "Save Changes" button
-    // TODO: I am now passing 'prize' as a string array. Haven't implement tabbed text area yet.
     $('#challenge-updated').click(function(evt){
         evt.preventDefault();
 
@@ -112,6 +111,12 @@ $(document).ready(function(){
             type: 'POST',
             data: data
         });
+    });
+
+    // Click handler for the "Edit" button
+    $('#edit-challenge').click(function(evt){
+        evt.preventDefault();
+        window.location.replace('./details?new=1');
     });
 
 
