@@ -109,7 +109,10 @@ $(document).ready(function(){
         $.ajax({
             url: 'edit',
             type: 'POST',
-            data: data
+            data: data,
+            success: function() {
+                alert("Challenge created!");
+            }
         });
     });
 
