@@ -93,15 +93,15 @@ class CreateChallenge(webapp2.RequestHandler):
 # Renders details page where a challenge's info is seen and can be edited 
 class ChallengePage(webapp2.RequestHandler):
     def get(self, short_name):
-        new_challenge = self.request.get("new")
+        new_challenge = int(self.request.get("new"))
         
         should_be_here = check_user_auth(short_name)
-        if not should_be_here and not new_challenge:
+        if not should_be_here and new_challenge == 0:
             self.redirect('/')  #TODO: just have them see w/o editing
 
         name = obj_type = length = unit = start = con_id = stakes_ids = stakes_info = checkin = None
         # Get the relevant model's info
-        if not new_challenge:
+        if new_challenge == 0:
             name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
         
             # Get stakes objects
@@ -126,7 +126,7 @@ class ChallengePage(webapp2.RequestHandler):
         context = {'description':short_name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
 
         # Render the page in context and display it
-        if not new_challenge:
+        if new_challenge == 0:
             challenge_page = jinja_environment.get_template("pages/nonedit-details.html")
         else:
             challenge_page = jinja_environment.get_template("pages/details.html")
