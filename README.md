@@ -11,6 +11,8 @@ http://chalis498.appspot.com/
 What to expect
 =========
 
+* Javascript library created - map.js (dedicated for checkin functionality, using Google Maps API)
+
 * Advanced feature in the App Engine (???)
 
 * Memcache on the server side (???)
@@ -29,5 +31,3 @@ Attributions
 =========
 
 * Javascript library used - JQuery, Qunit, Customized bootstrap by FlatUI
-
-* Javascript library created - map.js (dedicated for checkin functionality, using Google Maps API)
