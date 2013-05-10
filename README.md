@@ -6,7 +6,7 @@ Challenges web app
 Demo
 =========
 
-http://chalis498.appspot.com/
+http://chalisfinal.appspot.com/
 
 What to expect
 =========
