@@ -191,13 +191,12 @@ class InvitePage(webapp2.RequestHandler):
 class SendInvite(webapp2.RequestHandler):
     def post(self, short_name):
         email = self.request.get('email')
-        challenge_desc = self.request.get('description')        
     
         # Register the given email as one that belongs to an invitee for future reference
         add_desired_user(short_name, email)
 
         # Send an email to that person with the link to the join page
-        email_invite(short_name, email, challenge_desc)
+        email_invite(short_name, email)
 
 
 # Page arrived at when accepting an invitation to join a challenge. User chooses combatant name/team
@@ -210,20 +209,31 @@ class JoinPage(webapp2.RequestHandler):
         # Check that the user that logged in is someone who was invited to the challenge, or already in
         invited = check_user_desired(short_name, user.email())
 
+        # Add the user to the competition if they were invited
+        if invited:
+            # Grab the username from their email
+            username = grab_username(user.email())
+
+            # Create a new user model if this username is not in the db already
+            user_id = create_or_fetch_user(username)
+            
+            # Combatant details
+            combatant_id = create_combatant(username) 
+                    
+            # Link combatant and user
+            link_combatant_user(combatant_id, user_id)
+
+            # Get the contract id
+            con_id = Contract.query(Contract.short_name == short_name).get().contract_id
+
+            # Link contract and combatant
+            link_contract_combatant(con_id, combatant_id)
+
+
         # Tell them to get an invite if they weren't invited
-        if invited == "not":
-            not_invited_page = jinja_environment.get_template("pages/no-invite.html")
-            self.response.out.write(not_invited_page.render())
-        
-        elif invited == "already":
-            already_joined_page = jinja_environment.get_template("pages/already-joined.html")
-            self.response.out.write(already_joined_page.render())
-        
-        elif invited == "yes":
-            # Render page to ask user what combatant they are
-            context = {}
-            joined_page = jinja_environment.get_template("pages/joined.html")
-            self.response.out.write(joined_page.render(context))
+        context = {"invited": invited}
+        not_invited_page = jinja_environment.get_template("pages/joining.html")
+        self.response.out.write(not_invited_page.render(context))
 
 
 # Render the form for checking in to the indicated challenge. Form different depending on objective
@@ -784,19 +794,31 @@ def add_desired_user(short_name, email):
         players.put()
 
 
-def email_invite(short_name, email, desc):
+def check_user_desired(short_name, email):
+    contract = Contract.query(Contract.short_name == short_name).get()
+    des_users = DesiredUsers.query(DesiredUsers.contract_id == contract.contract_id).get()
+
+    if not des_users:
+        return False
+
+    user_list = des_users.users
+    if email not in user_list:
+        return False
+
+    return True
+
+
+def email_invite(short_name, email):
     user = users.get_current_user()
     sender = user.email()
     subject = "Step up to the challenge on Chalis!"
     body = """
 Hi there friend! 
 
-I would like you to join my challenge on chalis.com. To take me on in:
-%s
-
+I would like you to join my challenge on chalis.
 Just go to this link, log in with this email, and join the competition!
 %s
-""" % (desc, "http://chalis.com/"+short_name+"/join")
+""" % (desc, "http://chalisfinal.appspot.com/"+short_name+"/join")
 
     mail.send_mail(sender=sender, to=email, subject=subject, body=body)
 
