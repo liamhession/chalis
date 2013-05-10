@@ -19,6 +19,22 @@ body{
 	border: solid 1px;
 }
 
+#checkin-link
+{
+    position: absolute;
+    right: 30px;
+    top: 5px;
+}
+
+.checkin-box
+{
+    position: absolute;
+    width: 380px;
+    text-align: center;
+    left: 50%;
+    margin-left: -190px;
+}
+
 .detail-select
 {
 	border: solid black;
@@ -28,6 +44,18 @@ body{
 { 
 	height: 250px; 
 	width: 500px; 
+}
+
+.challenge-progress
+{
+    position: relative;
+}
+
+.end-date
+{
+    position: absolute;
+    right: 10px;
+    bottom: 128px;
 }
 
 .hidden

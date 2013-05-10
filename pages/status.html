@@ -34,14 +34,20 @@
 	</div>
 
 
-	 <div class="container">
+	 <div class="container challenge-progress">
 		 <h1 id="main-title">{{ name }}</h1>
+         <h2 id="checkin-link"><a href="./checkin">Check in</a></h2>
 		 <hr>
-         <div id="duration">Start: {{ start.month }}/{{ start.day }}</div>
-         <div class="offset1 span{{ spans_complete }}" id="progress-bar"></div><div class="span{{ 10-spans_complete }}" id="remaining-bar"></div>
+         <h2>Start date: {{ start.month }}/{{ start.day }}</h2>
+         <div class="end-date"><h2>End date: {{ end.month }}/{{ end.day }}</h2></div>
+         <div class="progress">
+            <div class="bar" style="width: {{ spans_complete*10 }}%;"></div>
+         </div>
          <hr>
          {% for combatant in combatants %}
-         <div class="combatant">{{ combatant.position }}. {{ combatant.name }} ---- Checkin count: {{ combatant.count }}</div>
+         <div class="combatant"><h3>{% if combatant.position %}{{ combatant.position }}. {% endif %}{{ combatant.name }}</h3>
+         <h4>Checkin count: {{ combatant.count }}</h4>
+         </div>
          {% endfor %}
     </div>
      

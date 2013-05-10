@@ -44,7 +44,8 @@
 		 <div class="row">
 			<div class="span3"><h2>Objective:</h2></div>
 			<div class="span3 offset1" id="objective-type-block">
-				<h3>Objective Type</h3>
+				{% if objective %}
+                <h3>Objective Type</h3>
 				<div class="span3">
 					{% if objective == "highest-occurrence" %}
                     <h4>Highest Occurrence</h4>
@@ -56,6 +57,7 @@
                     Reddit
                     {% endif %}
 				</div>
+                {% endif %}
 			</div>
 
 			
@@ -85,6 +87,7 @@
 				<div class="span3"><h2>Time Period:</h2></div>
 				<div class="span3 offset1">
 					<div class="span3">
+                    {% if length %}
                     <h4>{{ length }}
 						{% if time_units == 'days' %} days, {% endif %}
 						{% if time_units == 'weeks' %} weeks, {% endif %}
@@ -92,7 +95,8 @@
 
                         <br />
                         starting {{ start_date.month }}/{{ start_date.day }}/{{ start_date.year }}
-                        </h4>
+                    </h4>
+                    {% endif %}
 					</div>
 				</div>
 		 </div>

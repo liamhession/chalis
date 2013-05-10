@@ -97,7 +97,7 @@ class ChallengePage(webapp2.RequestHandler):
         edit_status = self.request.get("edit")
                 
         should_be_here = check_user_auth(short_name)
-        if not should_be_here and new_challenge == 0:
+        if not should_be_here and new_status == 0:
             self.redirect('/')  #TODO: just have them see w/o editing
 
         name = obj_type = length = unit = start = con_id = stakes_ids = stakes_info = checkin = None
@@ -299,10 +299,21 @@ class StatusPage(webapp2.RequestHandler):
         # Find how many 10ths into the challenge we are, so we can draw a bar that many spans long
         fraction_over_10 = num_tenths_in(start, unit, length)
 
+        # Make end date object
+        multiplier = 1
+        if unit == "weeks":
+            multiplier = 7
+        if unit == "months":
+            multiplier = 30
+        days_in_challenge = length*multiplier
+
+        end = start + datetime.timedelta(days=days_in_challenge)
+        end = {'month': end.month, 'day': end.day}  
+
         # Make a nice start object
         start = {'month': start.month, 'day': start.day}
 
-        context = {'name': name, 'start': start, 'spans_complete': fraction_over_10, 'combatants': template_coms}
+        context = {'name': name, 'start': start, 'spans_complete': fraction_over_10, 'combatants': template_coms, 'end': end}
         status_page = jinja_environment.get_template("pages/status.html")
         self.response.out.write(status_page.render(context))
 
@@ -343,7 +354,7 @@ def fetch_current_challenges_list():
         challenge_name = con.challenge_name
 
         # Link to details page if competition is in future
-        if con.start_date > datetime.date.today():
+        if not con.start_date or con.start_date > datetime.date.today():
             link = '/'+con.short_name+'/details'
         # Otherwise link to status page
         else:

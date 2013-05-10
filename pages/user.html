@@ -38,7 +38,10 @@
 		 <h1 id="main-title">Challenges {{ username }} is in:</h1>
 		 <hr>
          {% for challenge in challenges %}
-         <div class="challenge"><a href="{{ challenge.link }}">{{ challenge.challenge_name }}</a> --- as {{ challenge.com_name }}, position {{ challenge.position }}</div>
+         <div class="challenge"><h3><a href="{{ challenge.link }}">{{ challenge.challenge_name }}</a></h4> 
+         <h4>competing as {{ challenge.com_name }}{% if challenge.position %}, in position {{ challenge.position }}{% endif %}</h4>
+         </div>
+         <br />
          {% endfor %}
     </div>
      
