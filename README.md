@@ -29,3 +29,8 @@ Attributions
 =========
 
 * Javascript library used - JQuery, Qunit, Customized bootstrap by FlatUI
+
+Documents
+=========
+
+* See tech doc, wireframes in /docs. Test cases in /test
