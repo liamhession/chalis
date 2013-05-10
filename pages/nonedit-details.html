@@ -44,15 +44,23 @@
 		 <div class="row">
 			<div class="span3"><h2>Objective:</h2></div>
 			<div class="span3 offset1" id="objective-type-block">
-				Objective Type
+				<h3>Objective Type</h3>
 				<div class="span3">
-					{{ objective }}
+					{% if objective == "highest-occurrence" %}
+                    <h4>Highest Occurrence</h4>
+                    {% endif %}
+                    {% if objective == "location" %}
+                    Geolocation
+                    {% endif %}
+                    {% if objective == "reddit" %}
+                    Reddit
+                    {% endif %}
 				</div>
 			</div>
 
 			
 			<div class="span3 offset2{% if objective != 'highest-occurrence' %} hidden{% endif %}" id="objective-name-block">
-			Objective Name: {{ checkin_action }}
+			<h4>Objective Name:</h4> {{ checkin_action }}
 			</div>
 		</div>
 				
@@ -76,63 +84,49 @@
 		 <div class="row">
 				<div class="span3"><h2>Time Period:</h2></div>
 				<div class="span3 offset1">
-					Time Unit
 					<div class="span3">
-						{% if time_units == 'days' %} Days {% endif %}
-						{% if time_units == 'weeks' %} Weeks {% endif %}
-						{% if time_units == 'months' %} Months {% endif %}
+                    <h4>{{ length }}
+						{% if time_units == 'days' %} days, {% endif %}
+						{% if time_units == 'weeks' %} weeks, {% endif %}
+						{% if time_units == 'months' %} months, {% endif %}
+
+                        <br />
+                        starting {{ start_date.month }}/{{ start_date.day }}/{{ start_date.year }}
+                        </h4>
 					</div>
 				</div>
 		 </div>
-		 
-		 <div class="row">
-				
-				<div class="span3 offset4">
-					Length of Time:
-					<div> {{ length }} </div>
-				</div>
-		 </div>
-		 
-			<div class="row">
-				<div class="span1 offset4">
-					Month:
-					{{ start_date.month }}
-				</div>
-				<div class="span1">
-					Day:
-					{{ start_date.day }}
-				</div>				
-				<div class="span1">
-					Year:
-					{{ start_date.year }}
-				</div>					
-		 </div>
+
 		 <hr>
 		
 		<!-- TODO: make this "tabbed panel", show only the text area being selected in the box above -->
 		<div class="row">
 				<div class = "span3"><h2>Prizes/Punishment:</h2></div>
 				{% if stakes["first"] %}
-				<div class="span3 offset4 prize-desc">
-					Stakes description 1: {{ stakes["first"] }}              
+				<div class="span3 offset1">
+					<h4>First place prize:</h4>
+                    {{ stakes["first"] }}              
 				</div>
 				{% endif %}
 				
 				{% if stakes["second"] %}
-				<div class="span3 offset4 prize-desc">
-					Stakes description 1: {{ stakes["second"] }}              
+				<div class="span3 offset1">
+					<h4>Second place prize:</h4>
+                    {{ stakes["second"] }}              
 				</div>
 				{% endif %}
 
 				{% if stakes["second to last"] %}
-				<div class="span3 offset4 prize-desc">
-					Stakes description 1: {{ stakes["second to last"] }}              
+				<div class="span3 offset1">
+                    <h4>Second to last punishment:</h4>
+					{{ stakes["second to last"] }}              
 				</div>
 				{% endif %}
 
 				{% if stakes["last"] %}
-				<div class="span3 offset4 prize-desc">
-					Stakes description 1: {{ stakes["last"] }}              
+				<div class="span3 offset1">
+                    <h4>Last place punishment:</h4>
+                    {{ stakes["last"] }}              
 				</div>
 				{% endif %}
 

@@ -111,7 +111,7 @@ $(document).ready(function(){
             type: 'POST',
             data: data,
             success: function() {
-                alert("Challenge created!");
+                window.location.replace('./details');                
             }
         });
     });
@@ -119,7 +119,7 @@ $(document).ready(function(){
     // Click handler for the "Edit" button
     $('#edit-challenge').click(function(evt){
         evt.preventDefault();
-        window.location.replace('./details?new=1');
+        window.location.replace('./details?edit=1');
     });
 
 

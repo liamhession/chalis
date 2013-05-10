@@ -93,15 +93,16 @@ class CreateChallenge(webapp2.RequestHandler):
 # Renders details page where a challenge's info is seen and can be edited 
 class ChallengePage(webapp2.RequestHandler):
     def get(self, short_name):
-        new_challenge = int(self.request.get("new"))
-        
+        new_status = self.request.get("new")
+        edit_status = self.request.get("edit")
+                
         should_be_here = check_user_auth(short_name)
         if not should_be_here and new_challenge == 0:
             self.redirect('/')  #TODO: just have them see w/o editing
 
         name = obj_type = length = unit = start = con_id = stakes_ids = stakes_info = checkin = None
         # Get the relevant model's info
-        if new_challenge == 0:
+        if not new_status:
             name, obj_type, length, unit, start, con_id, stakes_ids = fetch_contract_info(short_name)
         
             # Get stakes objects
@@ -117,22 +118,24 @@ class ChallengePage(webapp2.RequestHandler):
         else:
             obj_type = "highest-occurrence"
             start = datetime.date.today()
+            name = "New"
 
         # Convert start's DateProperty format to something usable in template if it is set
         if start:
             start = {'month': start.month, 'day': start.day, 'year': start.year}
 
         # Create context for page
-        context = {'description':short_name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
+        context = {'description':name, 'objective':obj_type, 'length':length, 'time_units':unit, 'start_date':start, 'stakes':stakes_info, 'checkin_action':checkin}
 
-        # Render the page in context and display it
-        if new_challenge == 0:
+        # Render the page in context and display it as either editable or not
+        if not new_status and not edit_status:
             if obj_type == 'location':
                 geo_obj = GeolocationObjective.query(GeolocationObjective.contract_id == con_id).get()
                 context['location'] = str(geo_obj.checkin_loc)
             challenge_page = jinja_environment.get_template("pages/nonedit-details.html")
         else:
             challenge_page = jinja_environment.get_template("pages/details.html")
+
         self.response.out.write(challenge_page.render(context))
 
 
