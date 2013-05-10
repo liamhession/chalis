@@ -818,7 +818,7 @@ Hi there friend!
 I would like you to join my challenge on chalis.
 Just go to this link, log in with this email, and join the competition!
 %s
-""" % (desc, "http://chalisfinal.appspot.com/"+short_name+"/join")
+""" % ("http://chalisfinal.appspot.com/"+short_name+"/join")
 
     mail.send_mail(sender=sender, to=email, subject=subject, body=body)
 
